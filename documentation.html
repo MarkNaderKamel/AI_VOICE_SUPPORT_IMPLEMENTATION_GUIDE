@@ -1,0 +1,2582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Voice Support - Multi-Platform Implementation Guide</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Prism.js for Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+
+    <style>
+        /* ============================================================
+           CSS VARIABLES
+           ============================================================ */
+        :root {
+            --primary-color: #f7931e;
+            --primary-dark: #e08100;
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --bg-code: #1e2633;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --border-color: #30363d;
+            --success-color: #3fb950;
+            --warning-color: #d29922;
+            --danger-color: #f85149;
+            --info-color: #58a6ff;
+            --purple-color: #a855f7;
+            --cyan-color: #06b6d4;
+            --sidebar-width: 300px;
+        }
+
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        /* Layout */
+        .docs-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-card);
+            position: sticky;
+            top: 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .sidebar-logo-text span {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .sidebar-logo-text small {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--success-color), #22c55e);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .nav-section {
+            padding: 8px 16px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 8px 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            margin-bottom: 2px;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .nav-link.active {
+            background: rgba(247, 147, 30, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .docs-header {
+            background: linear-gradient(135deg, var(--bg-card), rgba(247, 147, 30, 0.1));
+            padding: 60px 40px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .docs-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(247, 147, 30, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .docs-header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .docs-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .docs-breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .docs-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--text-primary), var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .docs-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 700px;
+        }
+
+        .docs-meta {
+            display: flex;
+            gap: 24px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .docs-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .docs-meta-item i {
+            color: var(--primary-color);
+        }
+
+        /* Docs Body */
+        .docs-body {
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .docs-section {
+            margin-bottom: 48px;
+            scroll-margin-top: 24px;
+        }
+
+        .docs-section h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .docs-section h2 .section-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .docs-section h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 24px 0 12px;
+            color: var(--text-primary);
+        }
+
+        .docs-section h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 20px 0 10px;
+            color: var(--text-secondary);
+        }
+
+        .docs-section p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .docs-section ul,
+        .docs-section ol {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        .docs-section li {
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .docs-section a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .docs-section a:hover {
+            text-decoration: underline;
+        }
+
+        /* Language Tabs */
+        .lang-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            background: var(--bg-code);
+            padding: 8px;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+        }
+
+        .lang-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lang-tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .lang-tab.active {
+            background: var(--primary-color);
+            color: #000;
+        }
+
+        .lang-tab i {
+            font-size: 14px;
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: var(--bg-code);
+            border-radius: 0 0 8px 8px;
+            margin: 0 0 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            border-top: none;
+        }
+
+        .code-block.standalone {
+            border-radius: 8px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 16px;
+        }
+
+        .code-block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-block-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .code-block-copy {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .code-block-copy:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 16px;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Inline Code */
+        code:not([class*="language-"]) {
+            background: var(--bg-code);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            color: var(--primary-color);
+        }
+
+        /* Tables */
+        .docs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .docs-table th,
+        .docs-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        .docs-table th {
+            background: var(--bg-code);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .docs-table td {
+            color: var(--text-secondary);
+        }
+
+        .docs-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .alert-content h4 {
+            margin: 0 0 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .alert-content p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .alert-info {
+            background: rgba(88, 166, 255, 0.1);
+            border-left: 4px solid var(--info-color);
+        }
+
+        .alert-info .alert-icon {
+            color: var(--info-color);
+        }
+
+        .alert-warning {
+            background: rgba(210, 153, 34, 0.1);
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .alert-warning .alert-icon {
+            color: var(--warning-color);
+        }
+
+        .alert-success {
+            background: rgba(63, 185, 80, 0.1);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .alert-success .alert-icon {
+            color: var(--success-color);
+        }
+
+        .alert-danger {
+            background: rgba(248, 81, 73, 0.1);
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .alert-danger .alert-icon {
+            color: var(--danger-color);
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .feature-card-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(247, 147, 30, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .feature-card h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Platform Cards */
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .platform-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .platform-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .platform-card i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .platform-card.php i {
+            color: #777BB4;
+        }
+
+        .platform-card.laravel i {
+            color: #FF2D20;
+        }
+
+        .platform-card.python i {
+            color: #3776AB;
+        }
+
+        .platform-card.flutter i {
+            color: #02569B;
+        }
+
+        .platform-card.dotnet i {
+            color: #512BD4;
+        }
+
+        .platform-card.nodejs i {
+            color: #339933;
+        }
+
+        .platform-card.react i {
+            color: #61DAFB;
+        }
+
+        .platform-card span {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Integration Tips */
+        .tip-box {
+            background: linear-gradient(135deg, rgba(247, 147, 30, 0.1), rgba(247, 147, 30, 0.05));
+            border: 1px solid rgba(247, 147, 30, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+        }
+
+        .tip-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tip-box p {
+            margin-bottom: 8px;
+        }
+
+        .tip-box ul {
+            margin: 0;
+        }
+
+        /* Download Cards - Premium Styling */
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .download-card {
+            background: linear-gradient(145deg, var(--bg-card), #1a1f2a);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .download-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--card-accent, var(--primary-color));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .download-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .download-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, var(--card-glow, rgba(247, 147, 30, 0.15)) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .download-card:hover::after {
+            opacity: 1;
+        }
+
+        .download-card:hover {
+            border-color: var(--card-accent, var(--primary-color));
+            transform: translateY(-8px);
+            box-shadow:
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 40px var(--card-glow, rgba(247, 147, 30, 0.1));
+        }
+
+        .download-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .download-card-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-card-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: inherit;
+            filter: blur(10px);
+            opacity: 0.5;
+        }
+
+        .download-card-icon i {
+            position: relative;
+            z-index: 1;
+        }
+
+        .download-card-title {
+            flex: 1;
+        }
+
+        .download-card-title h4 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 4px 0;
+        }
+
+        .download-card-title .file-name {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: block;
+            margin-top: 6px;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+
+        .download-card-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+            flex: 1;
+        }
+
+        .download-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .download-card-version {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .download-card-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--card-accent, var(--primary-color));
+            transition: all 0.2s ease;
+        }
+
+        .download-card:hover .download-card-btn {
+            gap: 10px;
+        }
+
+        .download-card-btn i {
+            font-size: 14px;
+        }
+
+        /* Color Variants */
+        .download-card.php {
+            --card-accent: #777BB4;
+            --card-glow: rgba(119, 123, 180, 0.2);
+        }
+
+        .download-card.laravel {
+            --card-accent: #FF2D20;
+            --card-glow: rgba(255, 45, 32, 0.2);
+        }
+
+        .download-card.javascript {
+            --card-accent: #F7DF1E;
+            --card-glow: rgba(247, 223, 30, 0.2);
+        }
+
+        .download-card.database {
+            --card-accent: #f7931e;
+            --card-glow: rgba(247, 147, 30, 0.2);
+        }
+
+        .download-card.css {
+            --card-accent: #264DE4;
+            --card-glow: rgba(38, 77, 228, 0.2);
+        }
+
+        .download-card.blade {
+            --card-accent: #F05340;
+            --card-glow: rgba(240, 83, 64, 0.2);
+        }
+
+        /* Download Section Header */
+        .download-section-intro {
+            background: linear-gradient(135deg, rgba(247, 147, 30, 0.08), rgba(247, 147, 30, 0.02));
+            border: 1px solid rgba(247, 147, 30, 0.2);
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .download-section-intro-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .download-section-intro-text h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 6px 0;
+        }
+
+        .download-section-intro-text p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Back to Top */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 99;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(247, 147, 30, 0.3);
+        }
+
+        /* Mobile Toggle */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            width: 44px;
+            height: 44px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 101;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Footer */
+        .docs-footer {
+            padding: 40px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .docs-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .docs-header {
+                padding: 80px 20px 40px;
+            }
+
+            .docs-body {
+                padding: 24px;
+            }
+
+            .docs-title {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Mobile Toggle -->
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="docs-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="demo-index.html" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    <div class="sidebar-logo-text">
+                        <span>AI Voice Support</span>
+                        <small>Implementation Guide</small>
+                        <div class="version-badge">v2.0 - Live API</div>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Getting Started</div>
+                    <a href="#overview" class="nav-link active">
+                        <i class="fas fa-home"></i> Overview
+                    </a>
+                    <a href="#whats-new" class="nav-link">
+                        <i class="fas fa-sparkles"></i> What's New in v2.0
+                    </a>
+                    <a href="#platforms" class="nav-link">
+                        <i class="fas fa-layer-group"></i> Supported Platforms
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Implementation</div>
+                    <a href="#laravel" class="nav-link">
+                        <i class="fab fa-laravel"></i> Laravel / PHP
+                    </a>
+                    <a href="#python" class="nav-link">
+                        <i class="fab fa-python"></i> Python
+                    </a>
+                    <a href="#nodejs" class="nav-link">
+                        <i class="fab fa-node-js"></i> Node.js
+                    </a>
+                    <a href="#react" class="nav-link">
+                        <i class="fab fa-react"></i> React
+                    </a>
+                    <a href="#flutter" class="nav-link">
+                        <i class="fas fa-mobile-alt"></i> Flutter
+                    </a>
+                    <a href="#dotnet" class="nav-link">
+                        <i class="fas fa-code"></i> .NET
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Integration</div>
+                    <a href="#floating-button" class="nav-link">
+                        <i class="fas fa-circle"></i> Floating Button
+                    </a>
+                    <a href="#header-nav" class="nav-link">
+                        <i class="fas fa-bars"></i> Header/Nav Link
+                    </a>
+                    <a href="#chatbot-widget" class="nav-link">
+                        <i class="fas fa-comments"></i> Chatbot Widget
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Reference</div>
+                    <a href="#configuration" class="nav-link">
+                        <i class="fas fa-cog"></i> Configuration
+                    </a>
+                    <a href="#voices" class="nav-link">
+                        <i class="fas fa-volume-up"></i> Available Voices
+                    </a>
+                    <a href="#troubleshooting" class="nav-link">
+                        <i class="fas fa-tools"></i> Troubleshooting
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Downloads</div>
+                    <a href="#download-files" class="nav-link">
+                        <i class="fas fa-download"></i> Sample Files
+                    </a>
+                    <a href="#ai-prompt" class="nav-link">
+                        <i class="fas fa-robot"></i> AI Agent Prompt
+                    </a>
+                    <a href="demo-index.html" class="nav-link">
+                        <i class="fas fa-play-circle"></i> Live Demo
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="docs-header">
+                <div class="docs-header-content">
+                    <div class="docs-breadcrumb">
+                        <a href="demo-index.html">Home</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>Documentation</span>
+                    </div>
+                    <h1 class="docs-title">AI Voice Support - Multi-Platform Guide</h1>
+                    <p class="docs-subtitle">
+                        Complete implementation guide for adding AI-powered voice support to your applications.
+                        Now featuring <strong>Gemini Live API</strong> with real-time audio streaming and natural Zephyr
+                        voice.
+                    </p>
+                    <div class="docs-meta">
+                        <div class="docs-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span>~25 min read</span>
+                        </div>
+                        <div class="docs-meta-item">
+                            <i class="fas fa-code-branch"></i>
+                            <span>Version 2.0</span>
+                        </div>
+                        <div class="docs-meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Updated January 2026</span>
+                        </div>
+                        <div class="docs-meta-item">
+                            <i class="fas fa-layer-group"></i>
+                            <span>7 Platforms</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Body -->
+            <div class="docs-body">
+                <!-- Overview Section -->
+                <section id="overview" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-info"></i></span>
+                        Overview
+                    </h2>
+                    <p>
+                        This guide shows you how to implement AI Voice Support using Google's <strong>Gemini Multimodal
+                            Live API</strong>.
+                        Users can speak naturally and receive responses in a human-like voice, powered by Google's
+                        Zephyr voice synthesis.
+                    </p>
+
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-card-icon">
+                                <i class="fas fa-microphone-alt"></i>
+                            </div>
+                            <h4>Real-time Voice</h4>
+                            <p>Native audio streaming with WebSocket connection for instant responses.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-card-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h4>Gemini AI</h4>
+                            <p>Powered by Google's latest gemini-2.5-flash-native-audio model.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-card-icon">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <h4>Zephyr Voice</h4>
+                            <p>Natural, human-like voice synthesis built into the API.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-card-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h4>Low Latency</h4>
+                            <p>Real-time bidirectional audio for natural conversations.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- What's New Section -->
+                <section id="whats-new" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-sparkles"></i></span>
+                        What's New in v2.0
+                    </h2>
+
+                    <div class="alert alert-success">
+                        <div class="alert-icon"><i class="fas fa-rocket"></i></div>
+                        <div class="alert-content">
+                            <h4>Major Upgrade: Gemini Live API</h4>
+                            <p>Version 2.0 introduces real-time audio streaming with native voice synthesis. No more
+                                browser TTS!</p>
+                        </div>
+                    </div>
+
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>v1.0 (Old)</th>
+                                <th>v2.0 (New)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>API</td>
+                                <td>REST API (HTTP POST)</td>
+                                <td><strong>Live API (WebSocket)</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Voice Input</td>
+                                <td>Web Speech API</td>
+                                <td><strong>Native Audio Streaming</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Voice Output</td>
+                                <td>Browser TTS</td>
+                                <td><strong>Zephyr Voice (Google AI)</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Response Time</td>
+                                <td>2-3 seconds</td>
+                                <td><strong>Real-time</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Model</td>
+                                <td>gemini-2.0-flash-exp</td>
+                                <td><strong>gemini-2.5-flash-native-audio</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Platforms Section -->
+                <section id="platforms" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-layer-group"></i></span>
+                        Supported Platforms
+                    </h2>
+                    <p>Choose your platform below to see the implementation code:</p>
+
+                    <div class="platform-grid">
+                        <a href="#laravel" class="platform-card laravel">
+                            <i class="fab fa-laravel"></i>
+                            <span>Laravel</span>
+                        </a>
+                        <a href="#laravel" class="platform-card php">
+                            <i class="fab fa-php"></i>
+                            <span>PHP</span>
+                        </a>
+                        <a href="#python" class="platform-card python">
+                            <i class="fab fa-python"></i>
+                            <span>Python</span>
+                        </a>
+                        <a href="#nodejs" class="platform-card nodejs">
+                            <i class="fab fa-node-js"></i>
+                            <span>Node.js</span>
+                        </a>
+                        <a href="#react" class="platform-card react">
+                            <i class="fab fa-react"></i>
+                            <span>React</span>
+                        </a>
+                        <a href="#flutter" class="platform-card flutter">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>Flutter</span>
+                        </a>
+                        <a href="#dotnet" class="platform-card dotnet">
+                            <i class="fas fa-code"></i>
+                            <span>.NET</span>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Laravel Section -->
+                <section id="laravel" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fab fa-laravel"></i></span>
+                        Laravel / PHP Implementation
+                    </h2>
+
+                    <h3>Step 1: Create the Controller</h3>
+                    <p>Create <code>app/Http/Controllers/Front/AiVoiceSupportController.php</code>:</p>
+
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">AiVoiceSupportController.php</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers\Front;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
+class AiVoiceSupportController extends Controller
+{
+    /**
+     * Get configuration for Gemini Live API
+     * Returns API key for client-side WebSocket connection
+     */
+    public function getConfig(Request $request)
+    {
+        $apiKey = env('GEMINI_API_KEY');
+        
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'error' => 'AI service not configured'
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'apiKey' => $apiKey,
+            'model' => 'gemini-2.5-flash-native-audio-preview-12-2025',
+            'voiceName' => 'Zephyr',
+            'systemInstruction' => $this->getSystemPrompt()
+        ]);
+    }
+
+    private function getSystemPrompt()
+    {
+        return "You are an AI voice assistant for our company. 
+Be conversational, helpful, and concise. 
+Respond naturally as if on a phone call.";
+    }
+}</code></pre>
+                    </div>
+
+                    <h3>Step 2: Add the Route</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">routes/web.php</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-php">// AI Voice Support Config Endpoint
+Route::get('/api/ai-voice-support/config', 
+    'Front\AiVoiceSupportController@getConfig')
+    ->name('front.ai.voice.config');</code></pre>
+                    </div>
+
+                    <h3>Step 3: Add Environment Variable</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">.env</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-bash"># Gemini API Key
+GEMINI_API_KEY=your_api_key_here</code></pre>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="alert-content">
+                            <h4>Get Your API Key</h4>
+                            <p>Get a free Gemini API key at <a href="https://aistudio.google.com/apikey"
+                                    target="_blank">Google AI Studio</a></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Python Section -->
+                <section id="python" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fab fa-python"></i></span>
+                        Python Implementation
+                    </h2>
+
+                    <h3>Flask/FastAPI Backend</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">app.py</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-python">from flask import Flask, jsonify
+import os
+
+app = Flask(__name__)
+
+@app.route('/api/ai-voice-support/config')
+def get_ai_config():
+    api_key = os.environ.get('GEMINI_API_KEY')
+    
+    if not api_key:
+        return jsonify({
+            'success': False,
+            'error': 'AI service not configured'
+        }), 500
+    
+    return jsonify({
+        'success': True,
+        'apiKey': api_key,
+        'model': 'gemini-2.5-flash-native-audio-preview-12-2025',
+        'voiceName': 'Zephyr',
+        'systemInstruction': '''You are an AI voice assistant. 
+Be helpful and conversational.'''
+    })
+
+if __name__ == '__main__':
+    app.run(debug=True)</code></pre>
+                    </div>
+
+                    <h3>Install Dependencies</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Terminal</span>
+                        </div>
+                        <pre><code class="language-bash">pip install flask python-dotenv</code></pre>
+                    </div>
+                </section>
+
+                <!-- Node.js Section -->
+                <section id="nodejs" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fab fa-node-js"></i></span>
+                        Node.js Implementation
+                    </h2>
+
+                    <h3>Express.js Backend</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">server.js</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-javascript">const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.get('/api/ai-voice-support/config', (req, res) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    
+    if (!apiKey) {
+        return res.status(500).json({
+            success: false,
+            error: 'AI service not configured'
+        });
+    }
+    
+    res.json({
+        success: true,
+        apiKey: apiKey,
+        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+        voiceName: 'Zephyr',
+        systemInstruction: `You are an AI voice assistant. 
+Be helpful and conversational.`
+    });
+});
+
+app.listen(3000, () => {
+    console.log('Server running on port 3000');
+});</code></pre>
+                    </div>
+
+                    <h3>Install Dependencies</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Terminal</span>
+                        </div>
+                        <pre><code class="language-bash">npm install express cors dotenv</code></pre>
+                    </div>
+                </section>
+
+                <!-- React Section -->
+                <section id="react" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fab fa-react"></i></span>
+                        React Implementation
+                    </h2>
+
+                    <h3>React Component with @google/genai SDK</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">VoiceSupport.tsx</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-javascript">import { useState, useRef } from 'react';
+import { GoogleGenAI } from '@google/genai';
+
+export function VoiceSupport() {
+    const [isConnected, setIsConnected] = useState(false);
+    const [status, setStatus] = useState('Click to start');
+    const sessionRef = useRef(null);
+
+    const startSession = async () => {
+        try {
+            setStatus('Connecting...');
+            
+            // Fetch config from your backend
+            const res = await fetch('/api/ai-voice-support/config');
+            const config = await res.json();
+            
+            const ai = new GoogleGenAI({ apiKey: config.apiKey });
+            
+            const session = await ai.live.connect({
+                model: config.model,
+                config: {
+                    responseModalities: ['AUDIO'],
+                    systemInstruction: config.systemInstruction,
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: {
+                                voiceName: config.voiceName
+                            }
+                        }
+                    }
+                },
+                callbacks: {
+                    onopen: () => {
+                        setIsConnected(true);
+                        setStatus('Connected! Listening...');
+                    },
+                    onmessage: (msg) => handleAudio(msg),
+                    onerror: (err) => setStatus('Error: ' + err.message)
+                }
+            });
+            
+            sessionRef.current = session;
+            startAudioCapture(session);
+            
+        } catch (err) {
+            setStatus('Failed to connect');
+        }
+    };
+
+    return (
+        &lt;div className="voice-modal"&gt;
+            &lt;h2&gt;Voice AI Support&lt;/h2&gt;
+            &lt;p className="status"&gt;{status}&lt;/p&gt;
+            &lt;button onClick={startSession}&gt;
+                {isConnected ? 'End Call' : 'Start Call'}
+            &lt;/button&gt;
+        &lt;/div&gt;
+    );
+}</code></pre>
+                    </div>
+
+                    <h3>Install SDK</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Terminal</span>
+                        </div>
+                        <pre><code class="language-bash">npm install @google/genai</code></pre>
+                    </div>
+                </section>
+
+                <!-- Flutter Section -->
+                <section id="flutter" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-mobile-alt"></i></span>
+                        Flutter Implementation
+                    </h2>
+
+                    <h3>Dart Service Class</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">ai_voice_service.dart</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-dart">import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+class AiVoiceService {
+  WebSocketChannel? _channel;
+  String? _apiKey;
+  
+  Future&lt;void&gt; initialize() async {
+    // Fetch config from backend
+    final response = await http.get(
+      Uri.parse('https://yoursite.com/api/ai-voice-support/config')
+    );
+    
+    if (response.statusCode == 200) {
+      final config = json.decode(response.body);
+      _apiKey = config['apiKey'];
+    }
+  }
+  
+  Future&lt;void&gt; connect() async {
+    if (_apiKey == null) await initialize();
+    
+    // Connect to Gemini Live API WebSocket
+    final wsUrl = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=$_apiKey';
+    
+    _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+    
+    // Send setup message
+    _channel!.sink.add(json.encode({
+      'setup': {
+        'model': 'models/gemini-2.5-flash-native-audio-preview-12-2025',
+        'generationConfig': {
+          'responseModalities': ['AUDIO'],
+          'speechConfig': {
+            'voiceConfig': {
+              'prebuiltVoiceConfig': {'voiceName': 'Zephyr'}
+            }
+          }
+        }
+      }
+    }));
+    
+    // Listen for responses
+    _channel!.stream.listen((message) {
+      // Handle audio response
+      print('Received: $message');
+    });
+  }
+  
+  void disconnect() {
+    _channel?.sink.close();
+  }
+}</code></pre>
+                    </div>
+
+                    <h3>Add Dependencies</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">pubspec.yaml</span>
+                        </div>
+                        <pre><code class="language-yaml">dependencies:
+  http: ^1.1.0
+  web_socket_channel: ^2.4.0
+  permission_handler: ^11.0.0</code></pre>
+                    </div>
+                </section>
+
+                <!-- .NET Section -->
+                <section id="dotnet" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-code"></i></span>
+                        .NET Implementation
+                    </h2>
+
+                    <h3>ASP.NET Core Controller</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">AiVoiceController.cs</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-csharp">using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/ai-voice-support")]
+public class AiVoiceController : ControllerBase
+{
+    private readonly IConfiguration _configuration;
+
+    public AiVoiceController(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
+    [HttpGet("config")]
+    public IActionResult GetConfig()
+    {
+        var apiKey = _configuration["GeminiApiKey"];
+        
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            return StatusCode(500, new { 
+                success = false, 
+                error = "AI service not configured" 
+            });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            apiKey = apiKey,
+            model = "gemini-2.5-flash-native-audio-preview-12-2025",
+            voiceName = "Zephyr",
+            systemInstruction = @"You are an AI voice assistant. 
+Be helpful and conversational."
+        });
+    }
+}</code></pre>
+                    </div>
+
+                    <h3>Add to appsettings.json</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">appsettings.json</span>
+                        </div>
+                        <pre><code class="language-json">{
+  "GeminiApiKey": "your_api_key_here"
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Floating Button Integration -->
+                <section id="floating-button" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-circle"></i></span>
+                        Floating Button Integration
+                    </h2>
+                    <p>Add a floating action button (FAB) to trigger the voice support modal:</p>
+
+                    <div class="tip-box">
+                        <h4><i class="fas fa-lightbulb"></i> Pro Tip</h4>
+                        <p>Floating buttons are the most popular way to integrate voice support. They're always visible
+                            and easy to access without cluttering the main UI.</p>
+                    </div>
+
+                    <h3>HTML</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Floating Button HTML</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-html">&lt;!-- Floating AI Voice Button --&gt;
+&lt;button class="ai-floating-btn" onclick="openAIVoiceSupport()" 
+        aria-label="AI Voice Support"&gt;
+    &lt;i class="fas fa-microphone"&gt;&lt;/i&gt;
+    &lt;span class="pulse-ring"&gt;&lt;/span&gt;
+&lt;/button&gt;</code></pre>
+                    </div>
+
+                    <h3>CSS</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Floating Button CSS</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-css">.ai-floating-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f7931e, #e08100);
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(247, 147, 30, 0.4);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.ai-floating-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(247, 147, 30, 0.6);
+}
+
+/* Pulsing ring animation */
+.pulse-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid #f7931e;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Header/Nav Integration -->
+                <section id="header-nav" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-bars"></i></span>
+                        Header/Navigation Integration
+                    </h2>
+                    <p>Add the voice support as a navigation item or header button:</p>
+
+                    <h3>As a Nav Link</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Navigation Link</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-html">&lt;nav class="main-nav"&gt;
+    &lt;ul&gt;
+        &lt;li&gt;&lt;a href="/"&gt;Home&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href="/about"&gt;About&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href="/services"&gt;Services&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;
+            &lt;a href="javascript:void(0)" onclick="openAIVoiceSupport()"&gt;
+                &lt;i class="fas fa-microphone"&gt;&lt;/i&gt; AI Voice Support
+            &lt;/a&gt;
+        &lt;/li&gt;
+        &lt;li&gt;&lt;a href="/contact"&gt;Contact&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/nav&gt;</code></pre>
+                    </div>
+
+                    <h3>As a Header Button</h3>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Header Button</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-html">&lt;header class="site-header"&gt;
+    &lt;div class="logo"&gt;Your Logo&lt;/div&gt;
+    &lt;nav&gt;...&lt;/nav&gt;
+    &lt;button class="header-ai-btn" onclick="openAIVoiceSupport()"&gt;
+        &lt;i class="fas fa-headset"&gt;&lt;/i&gt;
+        Ask AI
+    &lt;/button&gt;
+&lt;/header&gt;</code></pre>
+                    </div>
+                </section>
+
+                <!-- Chatbot Widget Integration -->
+                <section id="chatbot-widget" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-comments"></i></span>
+                        Chatbot Widget Style
+                    </h2>
+                    <p>Implement as a chat-style widget that expands from the corner:</p>
+
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">Chat Widget HTML</span>
+                            <button class="code-block-copy" onclick="copyCode(this)">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <pre><code class="language-html">&lt;!-- Chat Widget Container --&gt;
+&lt;div class="ai-chat-widget" id="aiChatWidget"&gt;
+    &lt;!-- Collapsed Button --&gt;
+    &lt;button class="chat-toggle" onclick="toggleChatWidget()"&gt;
+        &lt;i class="fas fa-robot"&gt;&lt;/i&gt;
+        &lt;span&gt;Need Help?&lt;/span&gt;
+    &lt;/button&gt;
+    
+    &lt;!-- Expanded Panel --&gt;
+    &lt;div class="chat-panel"&gt;
+        &lt;div class="chat-header"&gt;
+            &lt;h4&gt;&lt;i class="fas fa-robot"&gt;&lt;/i&gt; AI Assistant&lt;/h4&gt;
+            &lt;button onclick="toggleChatWidget()"&gt;&times;&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class="chat-body"&gt;
+            &lt;p&gt;Hi! I'm your AI assistant.&lt;/p&gt;
+            &lt;p&gt;Click the microphone to talk to me!&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class="chat-footer"&gt;
+            &lt;button class="voice-btn" onclick="openAIVoiceSupport()"&gt;
+                &lt;i class="fas fa-microphone"&gt;&lt;/i&gt; Start Voice Chat
+            &lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+                    </div>
+                </section>
+
+                <!-- Configuration Section -->
+                <section id="configuration" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-cog"></i></span>
+                        Configuration Options
+                    </h2>
+
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Description</th>
+                                <th>Default</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>model</code></td>
+                                <td>Gemini model to use for audio</td>
+                                <td>gemini-2.5-flash-native-audio-preview-12-2025</td>
+                            </tr>
+                            <tr>
+                                <td><code>voiceName</code></td>
+                                <td>Voice for AI responses</td>
+                                <td>Zephyr</td>
+                            </tr>
+                            <tr>
+                                <td><code>systemInstruction</code></td>
+                                <td>AI persona and behavior instructions</td>
+                                <td>Custom per implementation</td>
+                            </tr>
+                            <tr>
+                                <td><code>responseModalities</code></td>
+                                <td>Output types (AUDIO, TEXT)</td>
+                                <td>['AUDIO']</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Voices Section -->
+                <section id="voices" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-volume-up"></i></span>
+                        Available Voices
+                    </h2>
+                    <p>Google's Gemini Live API offers several built-in voice options:</p>
+
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Voice Name</th>
+                                <th>Character</th>
+                                <th>Best For</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Zephyr</strong></td>
+                                <td>Friendly, natural</td>
+                                <td>General customer support (recommended)</td>
+                            </tr>
+                            <tr>
+                                <td>Puck</td>
+                                <td>Playful, energetic</td>
+                                <td>Entertainment, gaming</td>
+                            </tr>
+                            <tr>
+                                <td>Charon</td>
+                                <td>Deep, authoritative</td>
+                                <td>Professional, formal contexts</td>
+                            </tr>
+                            <tr>
+                                <td>Kore</td>
+                                <td>Warm, nurturing</td>
+                                <td>Healthcare, education</td>
+                            </tr>
+                            <tr>
+                                <td>Fenrir</td>
+                                <td>Bold, energetic</td>
+                                <td>Sports, action content</td>
+                            </tr>
+                            <tr>
+                                <td>Aoede</td>
+                                <td>Musical, artistic</td>
+                                <td>Creative, arts applications</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="alert alert-info">
+                        <div class="alert-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="alert-content">
+                            <h4>Changing the Voice</h4>
+                            <p>Simply update the <code>voiceName</code> field in your backend config to switch voices.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Troubleshooting Section -->
+                <section id="troubleshooting" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-tools"></i></span>
+                        Troubleshooting
+                    </h2>
+
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Problem</th>
+                                <th>Solution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Connection closed immediately</td>
+                                <td>Check API key is valid and model name is correct</td>
+                            </tr>
+                            <tr>
+                                <td>No audio output</td>
+                                <td>Ensure browser has audio permissions, check AudioContext is resumed</td>
+                            </tr>
+                            <tr>
+                                <td>Microphone not working</td>
+                                <td>Use HTTPS in production, check browser mic permissions</td>
+                            </tr>
+                            <tr>
+                                <td>404 on config endpoint</td>
+                                <td>Verify route is registered and server is running</td>
+                            </tr>
+                            <tr>
+                                <td>WebSocket error</td>
+                                <td>Check network connectivity, firewall settings</td>
+                            </tr>
+                            <tr>
+                                <td>Rate limit (429)</td>
+                                <td>Wait 60 seconds or upgrade to paid API tier</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="alert-content">
+                            <h4>HTTPS Required</h4>
+                            <p>Microphone access requires HTTPS in production. Localhost works for development.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Download Files Section -->
+                <section id="download-files" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-download"></i></span>
+                        Download Sample Files
+                    </h2>
+
+                    <!-- Intro Box -->
+                    <div class="download-section-intro">
+                        <div class="download-section-intro-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="download-section-intro-text">
+                            <h4>Ready-to-Use Implementation Files</h4>
+                            <p>Download these professionally crafted files to quickly integrate AI Voice Support with
+                                Gemini Live API into your project. All files are production-ready and well-documented.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Download Cards Grid -->
+                    <div class="download-grid">
+                        <!-- Controller (PHP) -->
+                        <a href="view-controller.html" class="download-card php">
+                            <div class="download-card-header">
+                                <div class="download-card-icon" style="background: rgba(119, 123, 180, 0.2);">
+                                    <i class="fab fa-php" style="color: #777BB4;"></i>
+                                </div>
+                                <div class="download-card-title">
+                                    <h4>Laravel Controller</h4>
+                                    <span class="file-name">AiVoiceSupportController.php</span>
+                                </div>
+                            </div>
+                            <p class="download-card-desc">
+                                Complete PHP controller with <code>getConfig()</code> endpoint for secure API key
+                                handling, rate limiting, and system prompts.
+                            </p>
+                            <div class="download-card-footer">
+                                <span class="download-card-version">v2.0 • 7.6 KB</span>
+                                <span class="download-card-btn">
+                                    View Code <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </a>
+
+                        <!-- Routes (PHP) -->
+                        <a href="view-routes.html" class="download-card laravel">
+                            <div class="download-card-header">
+                                <div class="download-card-icon" style="background: rgba(255, 45, 32, 0.15);">
+                                    <i class="fab fa-laravel" style="color: #FF2D20;"></i>
+                                </div>
+                                <div class="download-card-title">
+                                    <h4>Routes Configuration</h4>
+                                    <span class="file-name">routes-example.php</span>
+                                </div>
+                            </div>
+                            <p class="download-card-desc">
+                                Pre-configured Laravel routes with middleware examples, route groups, and Laravel 8+
+                                syntax alternatives included.
+                            </p>
+                            <div class="download-card-footer">
+                                <span class="download-card-version">v2.0 • 2.4 KB</span>
+                                <span class="download-card-btn">
+                                    View Code <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </a>
+
+                        <!-- JavaScript Module -->
+                        <a href="view-javascript.html" class="download-card javascript">
+                            <div class="download-card-header">
+                                <div class="download-card-icon" style="background: rgba(247, 223, 30, 0.15);">
+                                    <i class="fab fa-js" style="color: #F7DF1E;"></i>
+                                </div>
+                                <div class="download-card-title">
+                                    <h4>JavaScript Module</h4>
+                                    <span class="file-name">ai-voice-support.js</span>
+                                </div>
+                            </div>
+                            <p class="download-card-desc">
+                                Complete Gemini Live API integration with WebSocket connection, audio streaming,
+                                visualizer, and error handling.
+                            </p>
+                            <div class="download-card-footer">
+                                <span class="download-card-version">v2.0 • 19.2 KB</span>
+                                <span class="download-card-btn">
+                                    View Code <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </a>
+
+                        <!-- Knowledge Base -->
+                        <a href="view-knowledge-base.html" class="download-card database">
+                            <div class="download-card-header">
+                                <div class="download-card-icon" style="background: rgba(247, 147, 30, 0.15);">
+                                    <i class="fas fa-database" style="color: #f7931e;"></i>
+                                </div>
+                                <div class="download-card-title">
+                                    <h4>Knowledge Base</h4>
+                                    <span class="file-name">ai-knowledge-base.js</span>
+                                </div>
+                            </div>
+                            <p class="download-card-desc">
+                                Customizable company data template with services, FAQs, multilingual greetings, and AI
+                                system prompts.
+                            </p>
+                            <div class="download-card-footer">
+                                <span class="download-card-version">v2.0 • 12.5 KB</span>
+                                <span class="download-card-btn">
+                                    View Code <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </a>
+
+                        <!-- CSS Styles -->
+                        <a href="view-css.html" class="download-card css">
+                            <div class="download-card-header">
+                                <div class="download-card-icon" style="background: rgba(38, 77, 228, 0.15);">
+                                    <i class="fab fa-css3-alt" style="color: #264DE4;"></i>
+                                </div>
+                                <div class="download-card-title">
+                                    <h4>CSS Styles</h4>
+                                    <span class="file-name">ai-voice-support.css</span>
+                                </div>
+                            </div>
+                            <p class="download-card-desc">
+                                Modern, responsive modal styling with canvas visualizer, wave animations, glow effects,
+                                and dark theme.
+                            </p>
+                            <div class="download-card-footer">
+                                <span class="download-card-version">v2.0 • 11.5 KB</span>
+                                <span class="download-card-btn">
+                                    View Code <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </a>
+
+                        <!-- Blade Template -->
+                        <a href="view-blade.html" class="download-card blade">
+                            <div class="download-card-header">
+                                <div class="download-card-icon" style="background: rgba(240, 83, 64, 0.15);">
+                                    <i class="fas fa-file-code" style="color: #F05340;"></i>
+                                </div>
+                                <div class="download-card-title">
+                                    <h4>Blade Template</h4>
+                                    <span class="file-name">ai-voice-support.blade.php</span>
+                                </div>
+                            </div>
+                            <p class="download-card-desc">
+                                Laravel Blade component with modal HTML, canvas visualizer, control buttons, and usage
+                                examples included.
+                            </p>
+                            <div class="download-card-footer">
+                                <span class="download-card-version">v2.0 • 3.3 KB</span>
+                                <span class="download-card-btn">
+                                    View Code <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Quick Start Alert -->
+                    <div class="alert alert-success">
+                        <div class="alert-icon"><i class="fas fa-bolt"></i></div>
+                        <div class="alert-content">
+                            <h4>Quick Start Guide</h4>
+                            <p>
+                                <strong>1.</strong> Download all files above<br>
+                                <strong>2.</strong> Add <code>GEMINI_API_KEY=your_key</code> to your <code>.env</code>
+                                file<br>
+                                <strong>3.</strong> Copy files to their respective directories<br>
+                                <strong>4.</strong> Include the modal in your layout and call
+                                <code>openAIVoiceSupport()</code>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- AI Agent Prompt Section -->
+                <section id="ai-prompt" class="docs-section">
+                    <h2><i class="fas fa-robot"></i> AI Agent Implementation Prompt</h2>
+                    <p class="section-intro">
+                        Use the following prompt with any AI coding assistant (Claude, GPT-4, Gemini, Copilot, etc.)
+                        to automatically implement the AI Voice Support feature in your project.
+                    </p>
+
+                    <div class="alert alert-info" style="margin-bottom: 24px;">
+                        <div class="alert-icon"><i class="fas fa-lightbulb"></i></div>
+                        <div class="alert-content">
+                            <h4>How to Use This Prompt</h4>
+                            <p>
+                                Copy the prompt below and paste it into your preferred AI coding assistant.
+                                The AI will guide you through implementing all required files including the controller,
+                                routes, JavaScript, CSS, and Blade templates.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Prompt Card -->
+                    <div class="code-block" style="margin-bottom: 24px;">
+                        <div class="code-header">
+                            <span><i class="fas fa-robot"></i> Complete Implementation Prompt</span>
+                            <button class="copy-btn" onclick="copyPrompt(this)">
+                                <i class="fas fa-copy"></i> Copy Prompt
+                            </button>
+                        </div>
+                        <pre id="aiPromptContent" style="white-space: pre-wrap; max-height: 500px; overflow-y: auto;"><code>I need you to implement an AI Voice Support feature in my Laravel/Web application. This feature allows users to have real-time voice conversations with an AI assistant powered by Google's Gemini Multimodal Live API.
+
+## PROJECT REQUIREMENTS
+
+### Technology Stack
+- Backend: Laravel (PHP 7.4+)
+- Frontend: HTML5, CSS3, JavaScript (Vanilla)
+- AI API: Google Gemini Multimodal Live API (gemini-2.5-flash-native-audio-preview)
+- Audio: Web Audio API for real-time audio streaming
+
+### Features to Implement
+- Real-time voice-to-voice conversations with AI
+- Audio visualizer (canvas-based) showing audio waveforms
+- Modal-based UI with modern dark theme
+- Integration with custom knowledge base
+- Secure API key handling (server-side only)
+- Multiple voice options (Zephyr, Puck, Charon, Kore, Fenrir, Aoede)
+
+## IMPLEMENTATION STEPS
+
+### STEP 1: Create Laravel Controller
+Create `app/Http/Controllers/Front/AiVoiceSupportController.php` with:
+- `getConfig()` method returning: apiKey (from env), model name, voice name
+- API key retrieved from `GEMINI_API_KEY` environment variable
+- Rate limiting (10 requests/minute)
+
+### STEP 2: Add Laravel Routes
+Add to `routes/web.php`:
+```php
+Route::get('/api/ai-voice-support/config', 'Front\AiVoiceSupportController@getConfig');
+Route::post('/api/ai-voice-support', 'Front\AiVoiceSupportController@query');
+```
+
+### STEP 3: Create JavaScript Module
+Create `public/assets/front/js/ai-voice-support.js` with:
+- Config object with getConfigEndpoint(), voiceName, model
+- State management (session, stream, audioContext, status flags)
+- Functions: init(), openModal(), closeModal(), startSession(), endSession()
+- Audio handling: startAudioCapture(), handleAudioMessage(), playAudioChunk()
+- Canvas-based audio visualizer
+
+### STEP 4: Create CSS Styles
+Create `public/assets/front/css/ai-voice-support.css` with:
+- Modal overlay with backdrop blur
+- Modal container with rounded corners
+- Pulsing glow effect animation
+- Canvas visualizer styles
+- Control buttons (End Call, Retry, Close)
+- Colors: Primary #f7931e, Background #1a1a2e
+
+### STEP 5: Create Blade Template
+Create `resources/views/front/partials/ai-voice-support.blade.php` with:
+- Modal overlay, close button, header
+- Status display, canvas visualizer
+- Wave animation fallback, control buttons
+- Contact link for human support
+
+### STEP 6: Create Knowledge Base
+Create `public/assets/front/js/ai-knowledge-base.js` with:
+- documentContent: Company info as string
+- company: { name, tagline, website, email, phone }
+- services: Array of services with descriptions
+- faq: Array of Q&A pairs
+- systemPrompt: AI behavior instructions
+
+### STEP 7: Environment Setup
+Add to `.env`: GEMINI_API_KEY=your_api_key_here
+
+### STEP 8: Include in Layout
+Add to main layout before &lt;/body&gt;:
+```blade
+@include('front.partials.ai-voice-support')
+&lt;link rel="stylesheet" href="{{ asset('assets/front/css/ai-voice-support.css') }}"&gt;
+&lt;script src="{{ asset('assets/front/js/ai-knowledge-base.js') }}"&gt;&lt;/script&gt;
+&lt;script src="{{ asset('assets/front/js/ai-voice-support.js') }}"&gt;&lt;/script&gt;
+```
+
+### STEP 9: Add Trigger
+```html
+&lt;button onclick="openAIVoiceSupport()"&gt;AI Voice Support&lt;/button&gt;
+```
+
+## SECURITY REQUIREMENTS
+- NEVER hardcode API key in JavaScript
+- Always retrieve from backend /config endpoint
+- Use HTTPS in production
+- Implement rate limiting
+
+## AVAILABLE VOICES
+Zephyr, Puck, Charon, Kore, Fenrir, Aoede, Leda, Orus, Schedar
+
+Please implement this feature step by step, starting with the controller.</code></pre>
+                    </div>
+
+                    <!-- Download Full Prompt -->
+                    <div class="download-cards"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                        <a href="ai-implementation-prompt.md" download class="download-card"
+                            style="text-decoration: none;">
+                            <div class="download-card-header">
+                                <div class="download-card-icon" style="background: rgba(168, 85, 247, 0.15);">
+                                    <i class="fas fa-file-alt" style="color: #a855f7;"></i>
+                                </div>
+                                <div class="download-card-title">
+                                    <h4>Full Implementation Prompt</h4>
+                                    <span class="file-name">ai-implementation-prompt.md</span>
+                                </div>
+                            </div>
+                            <p class="download-card-desc">
+                                Complete markdown file with detailed step-by-step instructions,
+                                code examples, file structure, and troubleshooting guide.
+                            </p>
+                            <div class="download-card-footer">
+                                <span class="download-card-version">Markdown</span>
+                                <span class="download-card-btn">
+                                    <i class="fas fa-download"></i> Download
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- What the AI Will Create -->
+                    <div style="margin-top: 30px;">
+                        <h3 style="margin-bottom: 16px;"><i class="fas fa-folder-tree"
+                                style="color: var(--primary-color); margin-right: 8px;"></i> Files the AI Will Create
+                        </h3>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span>Project Structure</span>
+                            </div>
+                            <pre><code class="language-bash">your-project/
+├── app/Http/Controllers/Front/
+│   └── AiVoiceSupportController.php    # Backend API controller
+├── routes/
+│   └── web.php                          # Add routes here
+├── resources/views/front/partials/
+│   └── ai-voice-support.blade.php       # Modal template
+├── public/assets/front/
+│   ├── css/
+│   │   └── ai-voice-support.css         # Styles
+│   └── js/
+│       ├── ai-voice-support.js          # Main JS module
+│       └── ai-knowledge-base.js         # Company data
+└── .env                                  # Add GEMINI_API_KEY</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="docs-footer"
+                style="margin-top: 60px; padding: 40px; background: linear-gradient(180deg, var(--bg-card), #0a0d12); border-top: 1px solid var(--border-color); text-align: center;">
+                <div style="max-width: 600px; margin: 0 auto;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px;">
+                        <div
+                            style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-microphone" style="color: #fff; font-size: 22px;"></i>
+                        </div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">AI Voice Support
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Documentation v2.0</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+                        Built with <i class="fas fa-heart"
+                            style="color: var(--danger-color); animation: pulse 1.5s ease-in-out infinite;"></i> using
+                        <a href="https://ai.google.dev/" target="_blank"
+                            style="color: var(--primary-color); text-decoration: none; font-weight: 500;">Google Gemini
+                            Live API</a>
+                    </p>
+                    <div
+                        style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px;">
+                        <a href="demo-index.html"
+                            style="color: var(--text-muted); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: color 0.2s;">
+                            <i class="fas fa-desktop"></i> Live Demo
+                        </a>
+                        <span style="color: var(--border-color);">|</span>
+                        <a href="#download-files"
+                            style="color: var(--text-muted); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: color 0.2s;">
+                            <i class="fas fa-download"></i> Downloads
+                        </a>
+                        <span style="color: var(--border-color);">|</span>
+                        <a href="#troubleshooting"
+                            style="color: var(--text-muted); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: color 0.2s;">
+                            <i class="fas fa-question-circle"></i> Help
+                        </a>
+                    </div>
+                    <div style="padding-top: 20px; border-top: 1px solid var(--border-color);">
+                        <p style="color: var(--text-muted); font-size: 13px;">
+                            <i class="fas fa-code" style="margin-right: 6px; color: var(--primary-color);"></i>
+                            Developed by <a href="https://www.linkedin.com/in/mark-nader-kamel" target="_blank"
+                                style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Mark
+                                Nader</a>
+                        </p>
+                        <p style="color: var(--text-muted); font-size: 11px; margin-top: 8px;">
+                            © 2025-2026 All Rights Reserved
+                        </p>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Prism.js for Syntax Highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+
+    <script>
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        }
+
+        // Scroll to top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Show/hide back to top button
+        window.addEventListener('scroll', () => {
+            const btn = document.querySelector('.back-to-top');
+            if (window.scrollY > 300) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        });
+
+        // Active nav link on scroll
+        const sections = document.querySelectorAll('.docs-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.style.color = 'var(--success-color)';
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.color = '';
+                }, 2000);
+            });
+        }
+
+        // Copy AI prompt functionality
+        function copyPrompt(button) {
+            const promptContent = document.getElementById('aiPromptContent').textContent;
+
+            navigator.clipboard.writeText(promptContent).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.style.color = 'var(--success-color)';
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.color = '';
+                }, 2000);
+            });
+        }
+
+        // Close sidebar when clicking a link on mobile
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    document.querySelector('.sidebar').classList.remove('active');
+                    document.querySelector('.sidebar-overlay').classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

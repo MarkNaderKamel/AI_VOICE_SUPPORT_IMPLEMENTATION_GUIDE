@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laravel Controller - AI Voice Support</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f7931e;
+            --primary-dark: #e08100;
+            --bg: #0d1117;
+            --bg-card: #161b22;
+            --bg-code: #1e2633;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --border: #30363d;
+            --php: #777BB4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--text);
+            border-color: var(--primary);
+            background: rgba(247, 147, 30, 0.1);
+        }
+
+        .file-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(119, 123, 180, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--php);
+        }
+
+        .file-info h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .file-info .meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(247, 147, 30, 0.3);
+        }
+
+        .code-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .code-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red {
+            background: #ff5f57;
+        }
+
+        .code-dot.yellow {
+            background: #febc2e;
+        }
+
+        .code-dot.green {
+            background: #28c840;
+        }
+
+        .code-filename {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .code-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .code-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .code-btn.copied {
+            border-color: #28c840;
+            color: #28c840;
+        }
+
+        .code-content {
+            max-height: 70vh;
+            overflow: auto;
+        }
+
+        .code-content pre {
+            margin: 0;
+            padding: 20px;
+        }
+
+        .code-content code {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-section {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .info-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card h3 i {
+            color: var(--primary);
+        }
+
+        .info-card p,
+        .info-card li {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-card li {
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .info-card li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+
+        .path-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, var(--bg-code), #1a2332);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .path-box::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--primary);
+        }
+
+        .path-box-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(247, 147, 30, 0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .path-box-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .path-box-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .path-box-path {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: var(--text);
+            word-break: break-all;
+        }
+
+        .path-box-copy {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .path-box-copy:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .path-box-copy.copied {
+            border-color: #28c840;
+            color: #28c840;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-left">
+                <a href="documentation.html#download-files" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Downloads
+                </a>
+                <div class="file-badge">
+                    <div class="file-icon">
+                        <i class="fab fa-php"></i>
+                    </div>
+                    <div class="file-info">
+                        <h1>Laravel Controller</h1>
+                        <span class="meta">AiVoiceSupportController.php • v2.0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-outline" onclick="copyAllCode()">
+                    <i class="fas fa-copy"></i> Copy Code
+                </button>
+                <a href="demo-AiVoiceSupportController.php" download class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download File
+                </a>
+            </div>
+        </header>
+
+        <div class="code-card">
+            <div class="code-header">
+                <div class="code-title">
+                    <div class="code-dots">
+                        <span class="code-dot red"></span>
+                        <span class="code-dot yellow"></span>
+                        <span class="code-dot green"></span>
+                    </div>
+                    <span class="code-filename">AiVoiceSupportController.php</span>
+                </div>
+                <div class="code-actions">
+                    <button class="code-btn" onclick="copyAllCode()" id="copyBtn">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+            <div class="code-content">
+                <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers\Front;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * AI Voice Support Controller (DEMO VERSION)
+ * 
+ * Updated for Gemini Multimodal Live API (v2.0)
+ * Provides configuration for client-side WebSocket connections
+ * 
+ * INSTALLATION:
+ * 1. Copy this file to: app/Http/Controllers/Front/AiVoiceSupportController.php
+ * 2. Add GEMINI_API_KEY to your .env file
+ * 3. Add the routes to routes/web.php (see demo-routes-example.php)
+ * 
+ * @version 2.0.0
+ * @author Your Company Name
+ * @license MIT
+ */
+class AiVoiceSupportController extends Controller
+{
+    /**
+     * Get configuration for Gemini Live API
+     * 
+     * Returns the API key and settings for client-side WebSocket connection.
+     * The frontend uses @google/genai SDK to connect directly to Gemini.
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getConfig(Request $request)
+    {
+        // Rate limiting - allow max 10 config requests per minute per session
+        $sessionKey = 'ai_config_requests_' . session()-&gt;getId();
+        $requestCount = session($sessionKey, 0);
+        
+        if ($requestCount &gt;= 10) {
+            return response()-&gt;json([
+                'success' =&gt; false,
+                'error' =&gt; 'Too many requests. Please wait a moment.'
+            ], 429);
+        }
+        
+        session([$sessionKey =&gt; $requestCount + 1]);
+        
+        // Get API key from environment
+        $apiKey = env('GEMINI_API_KEY');
+        
+        if (!$apiKey) {
+            Log::error('GEMINI_API_KEY not configured in .env');
+            return response()-&gt;json([
+                'success' =&gt; false,
+                'error' =&gt; 'AI service not configured'
+            ], 500);
+        }
+
+        // Get the knowledge base context from the request or use default
+        $knowledgeContext = $request-&gt;input('context', $this-&gt;getDefaultContext());
+
+        return response()-&gt;json([
+            'success' =&gt; true,
+            'apiKey' =&gt; $apiKey,
+            'model' =&gt; 'gemini-2.5-flash-native-audio-preview-12-2025',
+            'voiceName' =&gt; 'Zephyr',  // Options: Zephyr, Puck, Charon, Kore, Fenrir, Aoede
+            'systemInstruction' =&gt; $knowledgeContext
+        ]);
+    }
+
+    /**
+     * Get default AI context/system prompt
+     * 
+     * Customize this with your company's information
+     * 
+     * @return string
+     */
+    private function getDefaultContext()
+    {
+        return "You are the official AI Voice Representative for Your Company Name.
+
+Your tone is professional, friendly, and helpful. You speak naturally like a helpful colleague.
+
+KNOWLEDGE BASE:
+- You help users with questions about services, pricing, and general inquiries
+- For specific issues, direct users to the contact page
+
+RESPONSE STYLE:
+- Keep responses concise but comprehensive (this is voice, not text)
+- Speak naturally as if on a phone call
+- Be warm and personable
+
+IMPORTANT:
+- Only answer from the provided knowledge base
+- If you don't know, suggest contacting support
+- Always be helpful and professional";
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-card">
+                <h3><i class="fas fa-folder"></i> Installation Path</h3>
+                <p>Copy this file to your Laravel project:</p>
+                <div class="path-box">
+                    <div class="path-box-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div class="path-box-content">
+                        <div class="path-box-label">Destination</div>
+                        <div class="path-box-path" id="installPath">
+                            app/Http/Controllers/Front/AiVoiceSupportController.php</div>
+                    </div>
+                    <button class="path-box-copy" onclick="copyPath()" id="copyPathBtn">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+            <div class="info-card">
+                <h3><i class="fas fa-key"></i> Environment Setup</h3>
+                <p>Add to your <code>.env</code> file:</p>
+                <div class="path-box">
+                    <div class="path-box-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="path-box-content">
+                        <div class="path-box-label">.env Configuration</div>
+                        <div class="path-box-path">GEMINI_API_KEY=your_api_key_here</div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-card">
+                <h3><i class="fas fa-cogs"></i> Features</h3>
+                <ul>
+                    <li>Secure API key handling via environment</li>
+                    <li>Rate limiting (10 requests/minute)</li>
+                    <li>Gemini Live API configuration</li>
+                    <li>Customizable system prompts</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer style="margin-top: 40px; padding: 20px 0; border-top: 1px solid var(--border); text-align: center;">
+            <p style="color: var(--text-muted); font-size: 13px;">
+                <i class="fas fa-code" style="margin-right: 6px; color: var(--primary);"></i>
+                Developed by <a href="https://www.linkedin.com/in/mark-nader-kamel" target="_blank"
+                    style="color: var(--primary); font-weight: 600; text-decoration: none;">Mark Nader</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+    <script>
+        function copyAllCode() {
+            const code = document.querySelector('.code-content code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function copyPath() {
+            const path = document.getElementById('installPath').textContent;
+            navigator.clipboard.writeText(path).then(() => {
+                const btn = document.getElementById('copyPathBtn');
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Module - AI Voice Support</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f7931e;
+            --primary-dark: #e08100;
+            --bg: #0d1117;
+            --bg-card: #161b22;
+            --bg-code: #1e2633;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --border: #30363d;
+            --accent: #F7DF1E;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--text);
+            border-color: var(--primary);
+            background: rgba(247, 147, 30, 0.1);
+        }
+
+        .file-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(247, 223, 30, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--accent);
+        }
+
+        .file-info h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .file-info .meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(247, 147, 30, 0.3);
+        }
+
+        .code-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .code-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red {
+            background: #ff5f57;
+        }
+
+        .code-dot.yellow {
+            background: #febc2e;
+        }
+
+        .code-dot.green {
+            background: #28c840;
+        }
+
+        .code-filename {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .code-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .code-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .code-btn.copied {
+            border-color: #28c840;
+            color: #28c840;
+        }
+
+        .code-content {
+            max-height: 70vh;
+            overflow: auto;
+        }
+
+        .code-content pre {
+            margin: 0;
+            padding: 20px;
+        }
+
+        .code-content code {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-section {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .info-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card h3 i {
+            color: var(--primary);
+        }
+
+        .info-card p,
+        .info-card li {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-card li {
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .info-card li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 12px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .path-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, var(--bg-code), #1a2332);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .path-box::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--primary);
+        }
+
+        .path-box-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(247, 147, 30, 0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .path-box-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .path-box-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .path-box-path {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: var(--text);
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-left">
+                <a href="documentation.html#download-files" class="back-btn"><i class="fas fa-arrow-left"></i> Back to
+                    Downloads</a>
+                <div class="file-badge">
+                    <div class="file-icon"><i class="fab fa-js"></i></div>
+                    <div class="file-info">
+                        <h1>JavaScript Module</h1>
+                        <span class="meta">ai-voice-support.js • v2.0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-outline" onclick="copyAllCode()"><i class="fas fa-copy"></i> Copy Code</button>
+                <a href="demo-ai-voice-support.js" download class="btn btn-primary"><i class="fas fa-download"></i>
+                    Download File</a>
+            </div>
+        </header>
+
+        <div class="code-card">
+            <div class="code-header">
+                <div class="code-title">
+                    <div class="code-dots"><span class="code-dot red"></span><span class="code-dot yellow"></span><span
+                            class="code-dot green"></span></div>
+                    <span class="code-filename">ai-voice-support.js</span>
+                </div>
+                <div class="code-actions">
+                    <button class="code-btn" onclick="copyAllCode()" id="copyBtn"><i class="fas fa-copy"></i>
+                        Copy</button>
+                </div>
+            </div>
+            <div class="code-content">
+                <pre><code class="language-javascript">/**
+ * AI Voice Support - Gemini Multimodal Live API Integration (DEMO VERSION)
+ * 
+ * Uses Google's native audio streaming for natural voice conversations.
+ * Features the Zephyr voice for high-quality speech synthesis.
+ * 
+ * INSTALLATION:
+ * 1. Copy this file to: public/assets/front/js/ai-voice-support.js
+ * 2. Include the @google/genai SDK (loaded dynamically)
+ * 3. Add the modal HTML and CSS
+ * 4. Call openAIVoiceSupport() to start
+ * 
+ * @version 2.0.0
+ * @requires @google/genai SDK
+ */
+
+const AIVoiceSupport = {
+    // ========================================
+    // CONFIGURATION
+    // ========================================
+    config: {
+        getConfigEndpoint() {
+            const base = document.querySelector('base')?.href;
+            if (base) {
+                return base.replace(/\/$/, '') + '/api/ai-voice-support/config';
+            }
+            return window.location.origin + '/api/ai-voice-support/config';
+        },
+        voiceName: 'Zephyr',
+        model: 'gemini-2.5-flash-native-audio-preview-12-2025'
+    },
+
+    // ========================================
+    // STATE
+    // ========================================
+    state: {
+        session: null,
+        stream: null,
+        audioContext: null,
+        isConnected: false,
+        isConnecting: false,
+        isSpeaking: false,
+        apiKey: null
+    },
+
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+    init() {
+        this.cacheElements();
+        this.bindEvents();
+        console.log('AI Voice Support initialized - Gemini Live API Mode');
+    },
+
+    // ... Full implementation includes:
+    // - Modal management (openModal, closeModal)
+    // - Session management (startSession, endSession)
+    // - Audio capture and streaming
+    // - Audio message handling and playback
+    // - Visualizer with canvas
+    // - Error handling and retry logic
+    
+    // See full file for complete implementation
+};
+
+// Global function to open the modal
+function openAIVoiceSupport() {
+    AIVoiceSupport.openModal();
+}
+
+// Auto-initialize on DOM ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () =&gt; AIVoiceSupport.init());
+} else {
+    AIVoiceSupport.init();
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-card">
+                <h3><i class="fas fa-folder"></i> Installation Path</h3>
+                <p>Copy this file to your project:</p>
+                <div class="path-box">
+                    <div class="path-box-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div class="path-box-content">
+                        <div class="path-box-label">Destination</div>
+                        <div class="path-box-path">public/assets/front/js/ai-voice-support.js</div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-card">
+                <h3><i class="fas fa-chart-bar"></i> File Stats</h3>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">19.2</div>
+                        <div class="stat-label">KB Size</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">500+</div>
+                        <div class="stat-label">Lines</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">v2.0</div>
+                        <div class="stat-label">Version</div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-card">
+                <h3><i class="fas fa-cogs"></i> Features</h3>
+                <ul>
+                    <li>Gemini Live API WebSocket connection</li>
+                    <li>Real-time audio streaming</li>
+                    <li>Canvas audio visualizer</li>
+                    <li>Automatic error recovery</li>
+                    <li>Session management</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer style="margin-top: 40px; padding: 20px 0; border-top: 1px solid var(--border); text-align: center;">
+            <p style="color: var(--text-muted); font-size: 13px;">
+                <i class="fas fa-code" style="margin-right: 6px; color: var(--primary);"></i>
+                Developed by <a href="https://www.linkedin.com/in/mark-nader-kamel" target="_blank"
+                    style="color: var(--primary); font-weight: 600; text-decoration: none;">Mark Nader</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script>
+        function copyAllCode() {
+            const code = document.querySelector('.code-content code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; btn.classList.remove('copied'); }, 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>

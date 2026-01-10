@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="demo-csrf-token">
+    <title>AI Voice Support - Demo Page</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- AI Voice Support CSS -->
+    <link rel="stylesheet" href="demo-ai-voice-support.css">
+
+    <style>
+        /* Demo Page Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .demo-header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #f7931e, #ffc107);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .demo-header p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 50px;
+        }
+
+        .demo-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .demo-btn-primary {
+            background: linear-gradient(135deg, #f7931e, #e08100);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(247, 147, 30, 0.3);
+        }
+
+        .demo-btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(247, 147, 30, 0.4);
+        }
+
+        .demo-btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .demo-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .demo-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .demo-feature {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .demo-feature:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+        }
+
+        .demo-feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #f7931e, #e08100);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .demo-feature h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .demo-feature p {
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+        }
+
+        .demo-instructions {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .demo-instructions h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #f7931e;
+        }
+
+        .demo-instructions ol {
+            padding-left: 25px;
+        }
+
+        .demo-instructions li {
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        .demo-instructions code {
+            background: rgba(247, 147, 30, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #f7931e;
+        }
+
+        .demo-note {
+            background: rgba(247, 147, 30, 0.1);
+            border-left: 4px solid #f7931e;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 30px;
+        }
+
+        .demo-note h4 {
+            color: #f7931e;
+            margin-bottom: 10px;
+        }
+
+        .demo-note p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        .demo-footer {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .demo-header h1 {
+                font-size: 32px;
+            }
+
+            .demo-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo-container">
+        <!-- Header -->
+        <header class="demo-header">
+            <h1><i class="fas fa-microphone"></i> AI Voice Support</h1>
+            <p>A powerful voice-enabled AI assistant that helps answer customer questions using your knowledge base.</p>
+        </header>
+
+        <!-- Action Buttons -->
+        <div class="demo-buttons">
+            <button class="demo-btn demo-btn-primary" onclick="openAIVoiceSupport()">
+                <i class="fas fa-microphone"></i> Open AI Voice Support
+            </button>
+            <a href="documentation.html" class="demo-btn demo-btn-secondary">
+                <i class="fas fa-book"></i> View Documentation
+            </a>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="demo-features">
+            <div class="demo-feature">
+                <div class="demo-feature-icon">
+                    <i class="fas fa-microphone-alt"></i>
+                </div>
+                <h3>Voice Recognition</h3>
+                <p>Speak naturally and let the AI understand your questions using Web Speech API technology.</p>
+            </div>
+
+            <div class="demo-feature">
+                <div class="demo-feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>AI-Powered Responses</h3>
+                <p>Get intelligent answers powered by Google Gemini AI, constrained to your knowledge base.</p>
+            </div>
+
+            <div class="demo-feature">
+                <div class="demo-feature-icon">
+                    <i class="fas fa-volume-up"></i>
+                </div>
+                <h3>Text-to-Speech</h3>
+                <p>Hear responses spoken aloud in your preferred language with natural voice synthesis.</p>
+            </div>
+
+            <div class="demo-feature">
+                <div class="demo-feature-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h3>14+ Languages</h3>
+                <p>Support for English, Arabic, French, Spanish, German, Chinese, Japanese, and more.</p>
+            </div>
+
+            <div class="demo-feature">
+                <div class="demo-feature-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3>Secure API Handling</h3>
+                <p>API keys are stored server-side, never exposed in client JavaScript code.</p>
+            </div>
+
+            <div class="demo-feature">
+                <div class="demo-feature-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3>Custom Knowledge Base</h3>
+                <p>AI strictly uses your company data to ensure accurate, relevant responses.</p>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="demo-instructions">
+            <h2><i class="fas fa-info-circle"></i> How to Use This Demo</h2>
+            <ol>
+                <li>Click the <strong>"Open AI Voice Support"</strong> button above</li>
+                <li>Allow microphone access when prompted by your browser</li>
+                <li>Click the orange microphone button in the modal</li>
+                <li>Speak your question clearly (try: "What services do you offer?")</li>
+                <li>Wait for the AI to process and respond</li>
+                <li>The response will be displayed and spoken aloud</li>
+            </ol>
+
+            <div class="demo-note">
+                <h4><i class="fas fa-exclamation-triangle"></i> Important Note</h4>
+                <p>
+                    This demo page is for <strong>frontend demonstration only</strong>.
+                    The AI functionality requires a properly configured backend with your Gemini API key.
+                    See the implementation guide for complete setup instructions.
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="demo-footer">
+            <p>AI Voice Support Demo | Built with Google Gemini API & Web Speech API</p>
+            <p style="margin-top: 10px;">
+                <i class="fas fa-code" style="margin-right: 6px; color: #f7931e;"></i>
+                Developed by <a href="https://www.linkedin.com/in/mark-nader-kamel" target="_blank"
+                    style="color: #f7931e; font-weight: 600; text-decoration: none;">Mark Nader</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- AI Voice Support Modal -->
+    <div id="aiVoiceSupportModal" class="ai-voice-modal" role="dialog" aria-modal="true">
+        <div class="ai-voice-content">
+            <button id="aiVoiceCloseBtn" class="ai-voice-close" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="ai-voice-header">
+                <h3>AI Voice Support</h3>
+                <p>Speak your question and get instant answers</p>
+            </div>
+
+            <button id="aiVoiceMicButton" class="ai-voice-mic-btn" aria-label="Start voice input">
+                <i class="fas fa-microphone"></i>
+            </button>
+
+            <div id="aiVoiceWave" class="ai-voice-wave">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div id="aiVoiceStatus" class="ai-voice-status">
+                Tap the microphone to speak
+            </div>
+
+            <div class="ai-voice-transcript">
+                <h4>You said:</h4>
+                <p id="aiVoiceTranscript">---</p>
+            </div>
+
+            <div class="ai-voice-response">
+                <h4>AI Response:</h4>
+                <p id="aiVoiceResponse">Waiting for your question...</p>
+            </div>
+
+            <div class="ai-voice-language-selector">
+                <label for="aiVoiceLanguage">Language</label>
+                <select id="aiVoiceLanguage">
+                    <option value="en">English</option>
+                    <option value="ar">العربية (Arabic)</option>
+                    <option value="fr">Français (French)</option>
+                    <option value="es">Español (Spanish)</option>
+                    <option value="de">Deutsch (German)</option>
+                    <option value="it">Italiano (Italian)</option>
+                    <option value="pt">Português (Portuguese)</option>
+                    <option value="ru">Русский (Russian)</option>
+                    <option value="zh">中文 (Chinese)</option>
+                    <option value="ja">日本語 (Japanese)</option>
+                    <option value="ko">한국어 (Korean)</option>
+                    <option value="tr">Türkçe (Turkish)</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="ur">اردو (Urdu)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Button (Optional) -->
+    <button class="ai-voice-floating-btn" onclick="openAIVoiceSupport()" aria-label="AI Voice Support">
+        <i class="fas fa-microphone"></i>
+    </button>
+
+    <!-- Load Scripts -->
+    <script src="demo-ai-knowledge-base.js"></script>
+    <script src="demo-ai-voice-support.js"></script>
+</body>
+
+</html>
