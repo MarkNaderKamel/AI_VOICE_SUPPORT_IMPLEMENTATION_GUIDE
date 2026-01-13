@@ -1102,6 +1102,9 @@
                     <a href="#voices" class="nav-link">
                         <i class="fas fa-volume-up"></i> Available Voices
                     </a>
+                    <a href="#custom-avatar" class="nav-link">
+                        <i class="fas fa-user-circle"></i> Custom Avatar
+                    </a>
                     <a href="#troubleshooting" class="nav-link">
                         <i class="fas fa-tools"></i> Troubleshooting
                     </a>
@@ -1117,6 +1120,13 @@
                     </a>
                     <a href="index.html" class="nav-link">
                         <i class="fas fa-play-circle"></i> Live Demo
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">اللغة العربية</div>
+                    <a href="#arabic-guide" class="nav-link">
+                        <i class="fas fa-globe"></i> الدليل العربي
                     </a>
                 </div>
             </nav>
@@ -1155,6 +1165,19 @@
                             <i class="fas fa-layer-group"></i>
                             <span>7 Platforms</span>
                         </div>
+                    </div>
+
+                    <!-- Language Switcher -->
+                    <div class="language-switcher"
+                        style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;">
+                        <button onclick="switchLanguage('en')" class="lang-switch-btn active" id="lang-en"
+                            style="padding: 10px 24px; border-radius: 25px; border: 2px solid var(--primary-color); background: var(--primary-color); color: #000; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-globe"></i> English
+                        </button>
+                        <button onclick="switchLanguage('ar')" class="lang-switch-btn" id="lang-ar"
+                            style="padding: 10px 24px; border-radius: 25px; border: 2px solid var(--primary-color); background: transparent; color: var(--primary-color); font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-globe"></i> العربية
+                        </button>
                     </div>
                 </div>
             </header>
@@ -2414,6 +2437,268 @@ Please implement this feature step by step, starting with the controller.</code>
                     </div>
                 </section>
 
+                <!-- Custom Avatar Section -->
+                <section id="custom-avatar" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-user-circle"></i></span>
+                        Custom Avatar / Character
+                    </h2>
+                    <p>Replace the default microphone icon with a custom avatar, character, or animated GIF to make your
+                        AI voice agent more engaging and personalized.</p>
+
+                    <h3>Step 1: Prepare Your Avatar</h3>
+                    <p>Place your avatar image or animated GIF in the assets folder:</p>
+                    <div class="code-block standalone">
+                        <pre><code class="language-bash">public/assets/img/your-avatar.gif   # Animated GIF recommended
+public/assets/img/your-avatar.png   # Or static image</code></pre>
+                    </div>
+
+                    <div class="tip-box">
+                        <h4><i class="fas fa-lightbulb"></i> Pro Tip</h4>
+                        <p>Animated GIFs with waving or speaking characters create a more engaging experience for users!
+                        </p>
+                    </div>
+
+                    <h3>Step 2: Update the HTML</h3>
+                    <p>Replace the floating button with a wrapper that includes a label and the avatar image:</p>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">HTML - Floating Avatar Button</span>
+                            <button class="code-block-copy" onclick="copyCode(this)"><i class="fas fa-copy"></i>
+                                Copy</button>
+                        </div>
+                        <pre><code class="language-html">&lt;!-- AI Voice Support Floating Button --&gt;
+&lt;div class="ai-floating-wrapper"&gt;
+  &lt;!-- Optional: Label above avatar --&gt;
+  &lt;div class="ai-floating-label"&gt;
+    &lt;span&gt;🤖 AI Voice Agent&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;!-- The button with custom avatar --&gt;
+  &lt;button class="ai-floating-btn" onclick="openAIVoiceSupport()" aria-label="AI Voice Support"&gt;
+    &lt;img src="assets/img/your-avatar.gif" alt="AI Assistant" class="ai-btn-gif"&gt;
+  &lt;/button&gt;
+&lt;/div&gt;</code></pre>
+                    </div>
+
+                    <h3>Step 3: Add CSS Styles</h3>
+                    <p>Add these styles to your CSS file:</p>
+                    <div class="code-block standalone">
+                        <div class="code-block-header">
+                            <span class="code-block-title">CSS - Avatar Styling</span>
+                            <button class="code-block-copy" onclick="copyCode(this)"><i class="fas fa-copy"></i>
+                                Copy</button>
+                        </div>
+                        <pre><code class="language-css">/* Floating AI Wrapper */
+.ai-floating-wrapper {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Speech Bubble Label */
+.ai-floating-label {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    animation: labelFloat 3s ease-in-out infinite;
+    position: relative;
+}
+
+/* Triangle pointer */
+.ai-floating-label::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #6366f1;
+}
+
+@keyframes labelFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Circular Avatar Button */
+.ai-floating-btn {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border: 4px solid #a78bfa;
+    outline: none;
+    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+    cursor: pointer;
+    overflow: hidden;
+    animation: gentleFloat 4s ease-in-out infinite;
+}
+
+@keyframes gentleFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-8px) scale(1.02); }
+}
+
+/* Avatar Image */
+.ai-floating-btn .ai-btn-gif {
+    width: 140%;
+    height: 140%;
+    object-fit: cover;
+    object-position: center top;
+    margin-top: 15px;
+}</code></pre>
+                    </div>
+
+                    <h3>Customization Options</h3>
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Description</th>
+                                <th>Default Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>width / height</code></td>
+                                <td>Button size</td>
+                                <td>100px</td>
+                            </tr>
+                            <tr>
+                                <td><code>background</code></td>
+                                <td>Frame/border color</td>
+                                <td>Purple gradient</td>
+                            </tr>
+                            <tr>
+                                <td><code>border</code></td>
+                                <td>Border style</td>
+                                <td>4px solid lavender</td>
+                            </tr>
+                            <tr>
+                                <td><code>margin-top</code></td>
+                                <td>Adjust image vertical position</td>
+                                <td>15px</td>
+                            </tr>
+                            <tr>
+                                <td>Label text</td>
+                                <td>Change in HTML</td>
+                                <td>"🤖 AI Voice Agent"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Arabic Guide Section -->
+                <section id="arabic-guide" class="docs-section" dir="rtl" style="text-align: right;">
+                    <h2 style="flex-direction: row-reverse;">
+                        <span class="section-icon"><i class="fas fa-globe"></i></span>
+                        دليل دعم الصوت بالذكاء الاصطناعي
+                    </h2>
+                    <p>هذا القسم يوفر نظرة عامة بالعربية لتنفيذ ميزة الدعم الصوتي بالذكاء الاصطناعي.</p>
+
+                    <h3>المتطلبات الأساسية</h3>
+                    <ul>
+                        <li><strong>PHP 7.4+</strong> مع تفعيل ملحق cURL</li>
+                        <li><strong>Laravel 6+</strong> أو أي إطار عمل PHP</li>
+                        <li><strong>مفتاح Google Gemini API</strong> - احصل عليه من <a
+                                href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a></li>
+                        <li><strong>متصفح حديث</strong> يدعم Web Speech API</li>
+                        <li><strong>HTTPS</strong> مطلوب للوصول إلى الميكروفون</li>
+                    </ul>
+
+                    <h3>إعداد متغيرات البيئة</h3>
+                    <p>أضف إلى ملف <code>.env</code>:</p>
+                    <div class="code-block standalone" dir="ltr" style="text-align: left;">
+                        <pre><code class="language-bash">GEMINI_API_KEY=your_api_key_here
+GEMINI_MODEL=gemini-2.5-flash-native-audio-preview-12-2025
+GEMINI_VOICE=Puck</code></pre>
+                    </div>
+
+                    <h3>خيارات الصوت المتاحة</h3>
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>النوع</th>
+                                <th>الصوت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ذكر</td>
+                                <td>Puck, Charon</td>
+                            </tr>
+                            <tr>
+                                <td>أنثى</td>
+                                <td>Kore, Zephyr</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>إضافة الزر العائم</h3>
+                    <p>أضف هذا الكود قبل إغلاق <code>&lt;/body&gt;</code>:</p>
+                    <div class="code-block standalone" dir="ltr" style="text-align: left;">
+                        <pre><code class="language-html">&lt;!-- زر دعم الصوت بالذكاء الاصطناعي --&gt;
+&lt;div class="ai-floating-wrapper"&gt;
+  &lt;div class="ai-floating-label"&gt;
+    &lt;span&gt;🤖 مساعد الصوت&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;button class="ai-floating-btn" onclick="openAIVoiceSupport()"&gt;
+    &lt;img src="assets/img/avatar.gif" alt="المساعد" class="ai-btn-gif"&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+
+&lt;!-- تضمين ملفات CSS و JavaScript --&gt;
+&lt;link rel="stylesheet" href="assets/css/ai-voice-support.css"&gt;
+&lt;script src="assets/js/ai-knowledge-base.js"&gt;&lt;/script&gt;
+&lt;script src="assets/js/ai-voice-support.js"&gt;&lt;/script&gt;</code></pre>
+                    </div>
+
+                    <h3>استكشاف الأخطاء وإصلاحها</h3>
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>الحل</th>
+                                <th>المشكلة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>تأكد من استخدام HTTPS وتحقق من إذن الميكروفون</td>
+                                <td>لا يعمل التعرف على الصوت</td>
+                            </tr>
+                            <tr>
+                                <td>تحقق من مفتاح API واسم النموذج في .env</td>
+                                <td>لا يوجد صوت من الذكاء الاصطناعي</td>
+                            </tr>
+                            <tr>
+                                <td>اضبط object-position و margin-top في CSS</td>
+                                <td>الشخصية لا تظهر بشكل صحيح</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="alert alert-info" dir="rtl">
+                        <i class="fas fa-info-circle alert-icon"></i>
+                        <div class="alert-content">
+                            <h4>للحصول على الدليل الكامل</h4>
+                            <p>راجع ملف <a href="AI_VOICE_SUPPORT_IMPLEMENTATION_GUIDE.md">دليل التنفيذ الكامل</a> الذي
+                                يحتوي على النسخة العربية الكاملة.</p>
+                        </div>
+                    </div>
+                </section>
+
             </div>
 
             <!-- Footer -->
@@ -2576,6 +2861,38 @@ Please implement this feature step by step, starting with the controller.</code>
                 }
             });
         });
+
+        // Language Switcher Function
+        function switchLanguage(lang) {
+            const enBtn = document.getElementById('lang-en');
+            const arBtn = document.getElementById('lang-ar');
+            const arabicSection = document.getElementById('arabic-guide');
+            const overviewSection = document.getElementById('overview');
+            
+            if (lang === 'ar') {
+                // Switch to Arabic
+                enBtn.style.background = 'transparent';
+                enBtn.style.color = 'var(--primary-color)';
+                arBtn.style.background = 'var(--primary-color)';
+                arBtn.style.color = '#000';
+                
+                // Scroll to Arabic section
+                if (arabicSection) {
+                    arabicSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            } else {
+                // Switch to English
+                arBtn.style.background = 'transparent';
+                arBtn.style.color = 'var(--primary-color)';
+                enBtn.style.background = 'var(--primary-color)';
+                enBtn.style.color = '#000';
+                
+                // Scroll to overview section
+                if (overviewSection) {
+                    overviewSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        }
     </script>
 </body>
 

@@ -21,6 +21,8 @@ This guide provides detailed instructions to implement an AI-powered voice suppo
 11. [Step 9: Add Trigger Buttons](#step-9-add-trigger-buttons)
 12. [Testing](#testing)
 13. [Troubleshooting](#troubleshooting)
+14. [Customization: Custom Avatar / Character](#customization-custom-avatar--character-for-floating-button)
+15. [دليل دعم الصوت بالذكاء الاصطناعي (Arabic Version)](#دليل-دعم-الصوت-بالذكاء-الاصطناعي-arabic-version)
 
 ---
 
@@ -1693,17 +1695,357 @@ voicePitch: 1.0,  // Pitch: 0 to 2 (1 is normal)
 
 ---
 
-## License and Credits
+## Customization: Custom Avatar / Character for Floating Button
 
-This implementation guide is provided as-is for educational purposes. Feel free to modify and use in your projects.
+### Replacing the Microphone Icon with a Custom Avatar or GIF
 
-**Technologies Used:**
-- Google Gemini API
-- Web Speech API (Speech Recognition & Synthesis)
-- Laravel PHP Framework
-- Modern CSS (Glassmorphism design)
+You can replace the default microphone icon with a custom character, avatar, or animated GIF to make your AI voice agent more engaging and personalized.
+
+#### Step 1: Prepare Your Avatar Image
+
+Place your avatar image or GIF in the assets folder:
+```
+public/assets/img/your-avatar.gif   (or .png, .jpg)
+```
+
+> **Tip:** Animated GIFs work great for creating a lively, engaging assistant!
+
+#### Step 2: Update the HTML
+
+Replace the floating button HTML with a wrapper that includes a label and the image:
+
+```html
+<!-- AI Voice Support Floating Button -->
+<div class="ai-floating-wrapper">
+  <!-- Optional: Label above avatar -->
+  <div class="ai-floating-label">
+    <span>🤖 AI Voice Agent</span>
+  </div>
+  <!-- The button with custom avatar -->
+  <button class="ai-floating-btn" onclick="openAIVoiceSupport()" aria-label="AI Voice Support">
+    <img src="assets/img/your-avatar.gif" alt="AI Assistant" class="ai-btn-gif">
+  </button>
+</div>
+```
+
+#### Step 3: Add the CSS Styles
+
+Add these styles to your `ai-voice-support.css`:
+
+```css
+/* ============================================================
+   FLOATING AI WRAPPER
+   ============================================================ */
+.ai-floating-wrapper {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Speech Bubble Label */
+.ai-floating-label {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    animation: labelFloat 3s ease-in-out infinite;
+    position: relative;
+}
+
+/* Triangle pointer pointing down */
+.ai-floating-label::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #6366f1;
+}
+
+@keyframes labelFloat {
+    0%, 100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(-5px);
+        opacity: 0.9;
+    }
+}
+
+/* ============================================================
+   FLOATING TRIGGER BUTTON
+   ============================================================ */
+.ai-floating-btn {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border: 4px solid #a78bfa;
+    outline: none;
+    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
+    animation: gentleFloat 4s ease-in-out infinite;
+}
+
+@keyframes gentleFloat {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-8px) scale(1.02);
+    }
+}
+
+.ai-floating-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 15px 50px rgba(139, 92, 246, 0.6);
+    animation-play-state: paused;
+}
+
+/* GIF/Image in Floating Button */
+.ai-floating-btn .ai-btn-gif {
+    width: 140%;
+    height: 140%;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 0;
+    pointer-events: none;
+    margin-top: 15px;
+}
+
+/* Responsive - Smaller on mobile */
+@media (max-width: 480px) {
+    .ai-floating-wrapper {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .ai-floating-btn {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .ai-floating-label {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+}
+```
+
+#### Customization Options
+
+| Property | Description | Default |
+|----------|-------------|---------|
+| `width`, `height` | Button size | 100px |
+| `background` | Border/frame color | Purple gradient |
+| `border` | Border style | 4px solid lavender |
+| `margin-top` (on image) | Adjust vertical position | 15px |
+| Label text | Change in HTML | "🤖 AI Voice Agent" |
 
 ---
 
-*Guide created for Al-Hekma Labs AI Voice Support Implementation*
-*Last updated: January 2026*
+## دليل دعم الصوت بالذكاء الاصطناعي (Arabic Version)
+
+# دليل تنفيذ دعم الصوت بالذكاء الاصطناعي
+
+## نظرة عامة
+
+هذا الدليل يشرح كيفية تنفيذ ميزة الدعم الصوتي بالذكاء الاصطناعي باستخدام Google Gemini API و Web Speech API و Laravel.
+
+---
+
+## المتطلبات الأساسية
+
+قبل البدء، تأكد من توفر:
+
+- **PHP 7.4+** مع تفعيل ملحق cURL
+- **Laravel 6+** framework
+- **مفتاح Google Gemini API** (احصل عليه من https://aistudio.google.com/apikey)
+- **متصفح حديث** يدعم Web Speech API (Chrome, Edge, Safari)
+- **HTTPS** (مطلوب للوصول إلى الميكروفون)
+
+---
+
+## هيكل المشروع
+
+بعد التنفيذ، سيحتوي مشروعك على هذه الملفات:
+
+```
+your-laravel-project/
+├── .env                                          # أضف GEMINI_API_KEY هنا
+├── app/Http/Controllers/Front/
+│   └── AiVoiceSupportController.php              # وكيل API الخلفي
+├── routes/
+│   └── web.php                                   # أضف مسار API
+├── resources/views/front/partials/
+│   └── ai-voice-support.blade.php                # مكون النافذة المنبثقة
+└── public/assets/front/
+    ├── css/
+    │   └── ai-voice-support.css                  # الأنماط
+    └── js/
+        ├── ai-knowledge-base.js                  # بيانات قاعدة المعرفة
+        └── ai-voice-support.js                   # وحدة JavaScript الرئيسية
+```
+
+---
+
+## الخطوة 1: إنشاء قاعدة المعرفة
+
+أنشئ الملف: `public/assets/front/js/ai-knowledge-base.js`
+
+```javascript
+const AI_KNOWLEDGE_BASE = {
+    // معلومات الشركة
+    company: {
+        name: "اسم شركتك",
+        nameArabic: "اسم شركتك بالعربية",
+        tagline: "شعار شركتك",
+        description: "وصف تفصيلي لما تقدمه شركتك",
+        website: "https://yourwebsite.com",
+        email: "info@yourcompany.com",
+        phone: "+1234567890"
+    },
+
+    // الخدمات المقدمة
+    services: [
+        {
+            name: "الخدمة الأولى",
+            description: "وصف تفصيلي للخدمة",
+            pricing: "اتصل بنا للتسعير"
+        }
+    ],
+
+    // التحيات متعددة اللغات
+    greetings: {
+        ar: "مرحباً! أهلاً بك. أنا مساعدك الآلي. كيف يمكنني مساعدتك اليوم؟",
+        en: "Hello! Welcome. I'm your AI assistant. How can I help you today?"
+    }
+};
+
+window.AI_KNOWLEDGE_BASE = AI_KNOWLEDGE_BASE;
+```
+
+---
+
+## الخطوة 2: إعداد متغيرات البيئة
+
+أضف إلى ملف `.env`:
+
+```
+GEMINI_API_KEY=your_google_gemini_api_key_here
+GEMINI_MODEL=gemini-2.5-flash-native-audio-preview-12-2025
+GEMINI_VOICE=Puck
+```
+
+### خيارات الصوت المتاحة:
+| الصوت | النوع |
+|-------|-------|
+| Puck | ذكر |
+| Charon | ذكر |
+| Kore | أنثى |
+| Zephyr | أنثى |
+
+---
+
+## الخطوة 3: إضافة الزر العائم
+
+أضف هذا الكود قبل إغلاق `</body>`:
+
+```html
+<!-- زر دعم الصوت بالذكاء الاصطناعي -->
+<div class="ai-floating-wrapper">
+  <div class="ai-floating-label">
+    <span>🤖 مساعد الصوت</span>
+  </div>
+  <button class="ai-floating-btn" onclick="openAIVoiceSupport()">
+    <img src="assets/img/your-avatar.gif" alt="المساعد" class="ai-btn-gif">
+  </button>
+</div>
+
+<!-- تضمين ملفات CSS و JavaScript -->
+<link rel="stylesheet" href="assets/css/ai-voice-support.css">
+<script src="assets/js/ai-knowledge-base.js"></script>
+<script src="assets/js/ai-voice-support.js"></script>
+```
+
+---
+
+## تخصيص الأفاتار / الشخصية
+
+### استبدال أيقونة الميكروفون بصورة مخصصة
+
+يمكنك استبدال أيقونة الميكروفون الافتراضية بشخصية مخصصة أو صورة متحركة GIF.
+
+#### الخطوة 1: ضع صورتك في مجلد الأصول:
+```
+public/assets/img/avatar.gif
+```
+
+#### الخطوة 2: عدّل HTML:
+```html
+<button class="ai-floating-btn" onclick="openAIVoiceSupport()">
+  <img src="assets/img/avatar.gif" alt="المساعد" class="ai-btn-gif">
+</button>
+```
+
+#### الخطوة 3: أضف أنماط CSS للصورة:
+```css
+.ai-floating-btn .ai-btn-gif {
+    width: 140%;
+    height: 140%;
+    object-fit: cover;
+    object-position: center top;
+    margin-top: 15px;
+}
+```
+
+---
+
+## استكشاف الأخطاء وإصلاحها
+
+### الخطأ: لا يعمل التعرف على الصوت
+- تأكد من استخدام HTTPS
+- تحقق من إذن الميكروفون في المتصفح
+
+### الخطأ: لا يوجد صوت من الذكاء الاصطناعي
+- تأكد من صحة مفتاح GEMINI_API_KEY
+- تحقق من اسم النموذج في ملف .env
+
+### الخطأ: الشخصية لا تظهر بشكل صحيح
+- اضبط `object-position` في CSS
+- عدّل `margin-top` لتحريك الصورة
+
+---
+
+## الترخيص والاعتمادات
+
+هذا الدليل مقدم للأغراض التعليمية. لا تتردد في تعديله واستخدامه في مشاريعك.
+
+**التقنيات المستخدمة:**
+- Google Gemini API
+- Web Speech API
+- Laravel PHP Framework
+
+---
+
+*دليل تم إنشاؤه لـ Al-Hekma Labs*
+*آخر تحديث: يناير 2026*

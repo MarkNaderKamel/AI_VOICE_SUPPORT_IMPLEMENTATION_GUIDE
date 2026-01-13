@@ -174,7 +174,7 @@ const AIVoiceSupport = {
                         this.state.isConnected = true;
                         this.state.isConnecting = false;
                         this.updateStatus('connected', 'Connected! Listening...');
-                        this.startAudioCapture(sessionPromise);
+                        this.startAudioCapture();
                     },
                     onmessage: async (message) => {
                         await this.handleAudioMessage(message);
@@ -282,56 +282,81 @@ const AIVoiceSupport = {
                 return;
             }
 
+            // Create a module script to load the SDK
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/genai@0.10.0/dist/index.umd.js';
-            // Note: Use the correct CDN URL for @google/genai
-            // The actual URL may vary - check Google's documentation
-            script.src = 'https://esm.run/@anthropic-ai/sdk';
-
-            // For demo purposes, we'll use a module approach
             script.type = 'module';
             script.textContent = `
                 import { GoogleGenAI } from 'https://esm.run/@google/genai';
                 window.GoogleGenAI = GoogleGenAI;
+                window.dispatchEvent(new Event('genai-loaded'));
             `;
 
-            script.onload = () => {
+            // Listen for SDK load event
+            const loadHandler = () => {
+                window.removeEventListener('genai-loaded', loadHandler);
                 console.log('GenAI SDK loaded');
                 resolve();
             };
+            window.addEventListener('genai-loaded', loadHandler);
+
             script.onerror = () => reject(new Error('Failed to load GenAI SDK'));
 
             document.head.appendChild(script);
 
-            // Alternative: Check for SDK after a timeout
+            // Fallback timeout check
             setTimeout(() => {
                 if (typeof GoogleGenAI !== 'undefined') {
                     resolve();
                 }
-            }, 2000);
+            }, 3000);
         });
     },
 
     // ========================================
     // AUDIO CAPTURE
     // ========================================
-    startAudioCapture(session) {
+    startAudioCapture() {
+        if (!this.state.stream || !this.state.inputAudioContext) return;
+
         const source = this.state.inputAudioContext.createMediaStreamSource(this.state.stream);
         this.state.processorNode = this.state.inputAudioContext.createScriptProcessor(4096, 1, 1);
 
+        // Store the actual sample rate from the input audio context
+        const actualSampleRate = this.state.inputAudioContext.sampleRate;
+        console.log('Audio capture started, sample rate:', actualSampleRate);
+
+        // Reference to this for use in callback
+        const self = this;
+
         this.state.processorNode.onaudioprocess = (event) => {
-            if (!this.state.isConnected || this.state.isSpeaking) return;
+            // Check connection state and get session directly from state
+            if (!self.state.isConnected || self.state.isSpeaking) return;
+
+            const session = self.state.session;
+            if (!session) {
+                // Session not yet assigned, skip this chunk
+                return;
+            }
 
             const inputData = event.inputBuffer.getChannelData(0);
-            const pcmData = this.floatTo16BitPCM(inputData);
-            const base64Data = this.arrayBufferToBase64(pcmData.buffer);
+            const pcmData = self.floatTo16BitPCM(inputData);
+            const base64Data = self.arrayBufferToBase64(pcmData.buffer);
 
             try {
-                if (session && session.send) {
+                // Use sendRealtimeInput with media object (correct API format)
+                if (typeof session.sendRealtimeInput === 'function') {
+                    session.sendRealtimeInput({
+                        media: {
+                            mimeType: `audio/pcm;rate=${actualSampleRate}`,
+                            data: base64Data
+                        }
+                    });
+                } else if (typeof session.send === 'function') {
+                    // Fallback for older SDK versions
                     session.send({
                         realtimeInput: {
                             mediaChunks: [{
-                                mimeType: 'audio/pcm;rate=16000',
+                                mimeType: `audio/pcm;rate=${actualSampleRate}`,
                                 data: base64Data
                             }]
                         }
