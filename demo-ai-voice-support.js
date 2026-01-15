@@ -1,16 +1,14 @@
 /**
  * AI Voice Support - Gemini Multimodal Live API Integration (DEMO VERSION)
  * 
+ * UPDATED: Uses the correct callbacks-based pattern for Gemini Live API
  * Uses Google's native audio streaming for natural voice conversations.
- * Features the Zephyr voice for high-quality speech synthesis.
  * 
- * INSTALLATION:
- * 1. Copy this file to: public/assets/front/js/ai-voice-support.js
- * 2. Include the @google/genai SDK (loaded dynamically)
- * 3. Add the modal HTML and CSS
- * 4. Call openAIVoiceSupport() to start
+ * CRITICAL: This version uses the correct API pattern with callbacks:
+ * - onopen, onmessage, onclose, onerror
+ * - session.sendRealtimeInput({ media: { data, mimeType } })
  * 
- * @version 2.0.0
+ * @version 3.0.0 - Fixed WebSocket implementation
  * @requires @google/genai SDK
  */
 
@@ -19,542 +17,478 @@ const AIVoiceSupport = {
     // CONFIGURATION
     // ========================================
     config: {
-        // Get the config endpoint URL
         getConfigEndpoint() {
-            // Adjust this based on your setup
-            const base = document.querySelector('base')?.href;
-            if (base) {
-                return base.replace(/\/$/, '') + '/api/ai-voice-support/config';
-            }
-            // Fallback - adjust for your domain
-            return window.location.origin + '/api/ai-voice-support/config';
+            const path = window.location.pathname;
+            const subfolderMatch = path.match(/^\/([^\/]+)\//);
+            const basePath = subfolderMatch ? '/' + subfolderMatch[1] : '';
+            return window.location.origin + basePath + '/api/ai-config.php';
         },
-        voiceName: 'Zephyr',
+        voiceName: 'Puck',
         model: 'gemini-2.5-flash-native-audio-preview-12-2025'
     },
 
     // ========================================
     // STATE
     // ========================================
-    state: {
-        session: null,
-        stream: null,
-        audioContext: null,
-        inputAudioContext: null,
-        outputNode: null,
-        processorNode: null,
-        sourceNodes: new Set(),
-        nextStartTime: 0,
-        isConnected: false,
-        isConnecting: false,
-        isSpeaking: false,
-        apiKey: null
-    },
+    isInitialized: false,
+    isConnected: false,
+    isSpeaking: false,
+    session: null,
+    inputAudioContext: null,
+    outputAudioContext: null,
+    mediaStream: null,
+    scriptProcessor: null,
+    nextStartTime: 0,
+    sourceNodes: new Set(),
+    analyser: null,
+    outputNode: null,
+    animationFrame: 0,
 
     // ========================================
     // DOM ELEMENTS
     // ========================================
     elements: {
         modal: null,
-        closeBtn: null,
-        status: null,
-        canvas: null,
-        endCallBtn: null,
+        statusText: null,
+        statusContainer: null,
+        visualizer: null,
+        endBtn: null,
         retryBtn: null
     },
 
     // ========================================
     // INITIALIZATION
     // ========================================
-    init() {
-        this.cacheElements();
-        this.bindEvents();
-        console.log('AI Voice Support initialized - Gemini Live API Mode');
+    async init() {
+        if (this.isInitialized) return;
+
+        this.elements.modal = document.getElementById('ai-voice-modal');
+        this.elements.statusText = document.getElementById('ai-status-text');
+        this.elements.statusContainer = document.getElementById('ai-status');
+        this.elements.visualizer = document.getElementById('ai-visualizer');
+        this.elements.endBtn = document.getElementById('ai-end-btn');
+        this.elements.retryBtn = document.getElementById('ai-retry-btn');
+
+        // Load SDK dynamically
+        try {
+            const module = await import('https://esm.run/@google/genai');
+            window.GoogleGenAI = module.GoogleGenAI;
+            window.Modality = module.Modality;
+            console.log('Gemini SDK loaded successfully');
+        } catch (error) {
+            console.error('Failed to load Gemini SDK:', error);
+        }
+
+        this.isInitialized = true;
+        console.log('AI Voice Support initialized');
     },
 
-    cacheElements() {
-        this.elements.modal = document.getElementById('aiVoiceSupportModal');
-        this.elements.closeBtn = document.getElementById('aiVoiceCloseBtn');
-        this.elements.status = document.getElementById('aiVoiceStatus');
-        this.elements.canvas = document.getElementById('aiVoiceCanvas');
-        this.elements.endCallBtn = document.getElementById('aiVoiceEndCall');
-        this.elements.retryBtn = document.getElementById('aiVoiceRetry');
-    },
+    // ========================================
+    // CONFIG LOADING
+    // ========================================
+    async loadConfig() {
+        try {
+            const endpoint = this.config.getConfigEndpoint();
+            console.log('Loading config from:', endpoint);
 
-    bindEvents() {
-        if (this.elements.closeBtn) {
-            this.elements.closeBtn.addEventListener('click', () => this.closeModal());
-        }
-        if (this.elements.endCallBtn) {
-            this.elements.endCallBtn.addEventListener('click', () => this.endSession());
-        }
-        if (this.elements.retryBtn) {
-            this.elements.retryBtn.addEventListener('click', () => this.startSession());
+            const response = await fetch(endpoint);
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load configuration');
+            }
+
+            this.config.apiKey = data.apiKey;
+            this.config.model = data.model || this.config.model;
+            this.config.voiceName = data.voiceName || this.config.voiceName;
+            this.config.systemInstruction = data.systemInstruction || '';
+
+            console.log('Config loaded:', { model: this.config.model, voice: this.config.voiceName });
+            return true;
+        } catch (error) {
+            console.error('Error loading config:', error);
+            this.updateStatus('error', 'Configuration error');
+            return false;
         }
     },
 
     // ========================================
     // MODAL MANAGEMENT
     // ========================================
-    openModal() {
-        if (this.elements.modal) {
-            this.elements.modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            this.startSession();
+    async openModal() {
+        if (!this.isInitialized) {
+            await this.init();
+        }
+
+        this.elements.modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        this.elements.retryBtn?.classList.remove('visible');
+        this.updateStatus('connecting', 'Connecting...');
+
+        this.initVisualizer();
+
+        const configLoaded = await this.loadConfig();
+        if (configLoaded) {
+            await this.startSession();
         }
     },
 
     closeModal() {
-        if (this.elements.modal) {
-            this.elements.modal.classList.remove('active');
-            document.body.style.overflow = '';
-            this.endSession();
-        }
+        this.stopSession();
+        this.elements.modal.classList.remove('active');
+        document.body.style.overflow = '';
     },
 
     // ========================================
-    // SESSION MANAGEMENT
+    // SESSION MANAGEMENT - CORRECT PATTERN
     // ========================================
+    stopSession() {
+        if (this.session) {
+            try { this.session.close(); } catch (e) { }
+            this.session = null;
+        }
+
+        if (this.mediaStream) {
+            this.mediaStream.getTracks().forEach(track => track.stop());
+            this.mediaStream = null;
+        }
+
+        if (this.inputAudioContext) {
+            try { this.inputAudioContext.close(); } catch (e) { }
+            this.inputAudioContext = null;
+        }
+        if (this.outputAudioContext) {
+            try { this.outputAudioContext.close(); } catch (e) { }
+            this.outputAudioContext = null;
+        }
+
+        this.sourceNodes.forEach(node => {
+            try { node.stop(); } catch (e) { }
+        });
+        this.sourceNodes.clear();
+
+        cancelAnimationFrame(this.animationFrame);
+
+        this.isConnected = false;
+        this.isSpeaking = false;
+        this.nextStartTime = 0;
+    },
+
+    /**
+     * Start session using CORRECT Gemini Live API pattern
+     * KEY: Uses callbacks object instead of .on() methods or async iteration
+     */
     async startSession() {
-        if (this.state.isConnecting) return;
-
         try {
-            this.state.isConnecting = true;
-            this.updateStatus('connecting', 'Establishing secure connection...');
-
-            // Get API config from backend
-            const config = await this.getConfig();
-            this.state.apiKey = config.apiKey;
-
-            // Load the Google GenAI SDK dynamically if not already loaded
-            if (typeof GoogleGenAI === 'undefined') {
-                await this.loadGenAISDK();
+            if (!window.GoogleGenAI) {
+                throw new Error('Gemini SDK not loaded');
             }
 
-            // Create audio contexts
-            this.state.inputAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-            this.state.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
+            if (!this.config.apiKey) {
+                throw new Error('API key not configured');
+            }
 
-            // Resume audio contexts
-            await this.state.inputAudioContext.resume();
-            await this.state.audioContext.resume();
+            // Create Gemini client
+            const ai = new window.GoogleGenAI({ apiKey: this.config.apiKey });
 
-            // Setup audio visualizer
-            this.setupVisualizer();
+            // Create separate audio contexts for input (16kHz) and output (24kHz)
+            this.inputAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            this.outputAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
+
+            await this.inputAudioContext.resume();
+            await this.outputAudioContext.resume();
+
+            // Set up audio output chain with analyser
+            this.analyser = this.outputAudioContext.createAnalyser();
+            this.analyser.fftSize = 256;
+            this.outputNode = this.outputAudioContext.createGain();
+            this.outputNode.connect(this.analyser);
+            this.analyser.connect(this.outputAudioContext.destination);
 
             // Get microphone access
-            this.state.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-            // Build system instruction from knowledge base
-            const kb = window.AI_KNOWLEDGE_BASE || {};
-            let systemInstruction = config.systemInstruction || '';
+            const self = this;
+            const inputAudioContext = this.inputAudioContext;
+            const stream = this.mediaStream;
 
-            if (kb.documentContent) {
-                systemInstruction += '\n\nCOMPANY KNOWLEDGE BASE:\n' + kb.documentContent;
-            }
-
-            // Initialize Gemini Live connection
-            const ai = new GoogleGenAI({ apiKey: config.apiKey });
-
+            // ========================================
+            // CORRECT PATTERN: Use callbacks object
+            // ========================================
             const sessionPromise = ai.live.connect({
-                model: config.model || this.config.model,
+                model: this.config.model,
                 config: {
-                    responseModalities: ['AUDIO'],
-                    systemInstruction: systemInstruction,
+                    responseModalities: window.Modality ? [window.Modality.AUDIO] : ['AUDIO'],
+                    systemInstruction: this.config.systemInstruction,
                     speechConfig: {
                         voiceConfig: {
                             prebuiltVoiceConfig: {
-                                voiceName: config.voiceName || this.config.voiceName
+                                voiceName: this.config.voiceName
                             }
                         }
                     }
                 },
+                // ========================================
+                // CALLBACKS - The correct way to handle events
+                // ========================================
                 callbacks: {
-                    onopen: () => {
-                        this.state.isConnected = true;
-                        this.state.isConnecting = false;
-                        this.updateStatus('connected', 'Connected! Listening...');
-                        this.startAudioCapture();
+                    onopen: function () {
+                        console.log('Live session opened');
+                        self.isConnected = true;
+                        self.updateStatus('listening', 'Listening...');
+
+                        // Set up audio input processing
+                        const source = inputAudioContext.createMediaStreamSource(stream);
+                        self.scriptProcessor = inputAudioContext.createScriptProcessor(4096, 1, 1);
+
+                        self.scriptProcessor.onaudioprocess = function (event) {
+                            const inputData = event.inputBuffer.getChannelData(0);
+                            const pcmBlob = self.createAudioBlob(inputData, inputAudioContext.sampleRate);
+
+                            // Send audio using sendRealtimeInput with media object
+                            sessionPromise.then(function (session) {
+                                try {
+                                    session.sendRealtimeInput({ media: pcmBlob });
+                                } catch (e) {
+                                    console.error('Error sending audio input:', e);
+                                }
+                            }).catch(function (err) {
+                                console.error('Session promise error:', err);
+                            });
+                        };
+
+                        source.connect(self.scriptProcessor);
+                        self.scriptProcessor.connect(inputAudioContext.destination);
                     },
-                    onmessage: async (message) => {
-                        await this.handleAudioMessage(message);
+
+                    onmessage: async function (message) {
+                        // Handle audio response
+                        const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+                        if (base64Audio) {
+                            self.isSpeaking = true;
+                            self.updateStatus('speaking', 'Speaking...');
+
+                            const audioCtx = self.outputAudioContext;
+                            if (audioCtx) {
+                                self.nextStartTime = Math.max(self.nextStartTime, audioCtx.currentTime);
+
+                                try {
+                                    const audioBuffer = await self.decodeAudioData(
+                                        self.base64ToBytes(base64Audio),
+                                        audioCtx,
+                                        24000,
+                                        1
+                                    );
+
+                                    const source = audioCtx.createBufferSource();
+                                    source.buffer = audioBuffer;
+                                    source.connect(self.outputNode);
+
+                                    source.onended = function () {
+                                        self.sourceNodes.delete(source);
+                                        if (self.sourceNodes.size === 0) {
+                                            self.isSpeaking = false;
+                                            if (self.isConnected) {
+                                                self.updateStatus('listening', 'Listening...');
+                                            }
+                                        }
+                                    };
+
+                                    source.start(self.nextStartTime);
+                                    self.nextStartTime += audioBuffer.duration;
+                                    self.sourceNodes.add(source);
+                                } catch (e) {
+                                    console.error('Audio decode error:', e);
+                                }
+                            }
+                        }
+
+                        // Handle interruption
+                        if (message.serverContent?.interrupted) {
+                            self.sourceNodes.forEach(function (node) {
+                                try { node.stop(); } catch (e) { }
+                            });
+                            self.sourceNodes.clear();
+                            self.nextStartTime = 0;
+                            self.isSpeaking = false;
+                            self.updateStatus('listening', 'Listening...');
+                        }
                     },
-                    onclose: () => {
-                        this.state.isConnected = false;
-                        this.updateStatus('idle', 'Connection closed');
+
+                    onclose: function () {
+                        console.log('Session closed');
+                        self.isConnected = false;
+                        self.updateStatus('', 'Disconnected');
                     },
-                    onerror: (error) => {
-                        console.error('Session error:', error);
-                        this.state.isConnecting = false;
-                        this.updateStatus('error', 'Connection error. Please try again.');
+
+                    onerror: function (err) {
+                        console.error('Session error:', err);
+                        self.updateStatus('error', 'Connection error');
+                        self.elements.retryBtn?.classList.add('visible');
                     }
                 }
             });
 
-            this.state.session = await sessionPromise;
+            this.session = await sessionPromise;
             this.drawVisualizer();
 
         } catch (error) {
-            console.error('Session start error:', error);
-            this.state.isConnecting = false;
-            this.updateStatus('error', error.message || 'Failed to connect. Please try again.');
-        }
-    },
-
-    async endSession() {
-        try {
-            // Stop audio capture
-            if (this.state.stream) {
-                this.state.stream.getTracks().forEach(track => track.stop());
-                this.state.stream = null;
-            }
-
-            // Disconnect session
-            if (this.state.session) {
-                this.state.session.disconnect();
-                this.state.session = null;
-            }
-
-            // Stop all audio playback
-            this.state.sourceNodes.forEach(node => {
-                try { node.stop(); } catch (e) { }
-            });
-            this.state.sourceNodes.clear();
-
-            // Close audio contexts
-            if (this.state.inputAudioContext) {
-                this.state.inputAudioContext.close();
-                this.state.inputAudioContext = null;
-            }
-            if (this.state.audioContext) {
-                this.state.audioContext.close();
-                this.state.audioContext = null;
-            }
-
-            this.state.isConnected = false;
-            this.state.isConnecting = false;
-            this.state.isSpeaking = false;
-            this.state.nextStartTime = 0;
-
-            this.updateStatus('idle', 'Session ended');
-
-        } catch (error) {
-            console.error('Error ending session:', error);
-        }
-    },
-
-    // ========================================
-    // CONFIG FETCHING
-    // ========================================
-    async getConfig() {
-        try {
-            const response = await fetch(this.config.getConfigEndpoint(), {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to get configuration');
-            }
-
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.error || 'Configuration error');
-            }
-
-            return data;
-        } catch (error) {
-            console.error('Config error:', error);
-            throw error;
-        }
-    },
-
-    // ========================================
-    // SDK LOADING
-    // ========================================
-    async loadGenAISDK() {
-        return new Promise((resolve, reject) => {
-            if (typeof GoogleGenAI !== 'undefined') {
-                resolve();
-                return;
-            }
-
-            // Create a module script to load the SDK
-            const script = document.createElement('script');
-            script.type = 'module';
-            script.textContent = `
-                import { GoogleGenAI } from 'https://esm.run/@google/genai';
-                window.GoogleGenAI = GoogleGenAI;
-                window.dispatchEvent(new Event('genai-loaded'));
-            `;
-
-            // Listen for SDK load event
-            const loadHandler = () => {
-                window.removeEventListener('genai-loaded', loadHandler);
-                console.log('GenAI SDK loaded');
-                resolve();
-            };
-            window.addEventListener('genai-loaded', loadHandler);
-
-            script.onerror = () => reject(new Error('Failed to load GenAI SDK'));
-
-            document.head.appendChild(script);
-
-            // Fallback timeout check
-            setTimeout(() => {
-                if (typeof GoogleGenAI !== 'undefined') {
-                    resolve();
-                }
-            }, 3000);
-        });
-    },
-
-    // ========================================
-    // AUDIO CAPTURE
-    // ========================================
-    startAudioCapture() {
-        if (!this.state.stream || !this.state.inputAudioContext) return;
-
-        const source = this.state.inputAudioContext.createMediaStreamSource(this.state.stream);
-        this.state.processorNode = this.state.inputAudioContext.createScriptProcessor(4096, 1, 1);
-
-        // Store the actual sample rate from the input audio context
-        const actualSampleRate = this.state.inputAudioContext.sampleRate;
-        console.log('Audio capture started, sample rate:', actualSampleRate);
-
-        // Reference to this for use in callback
-        const self = this;
-
-        this.state.processorNode.onaudioprocess = (event) => {
-            // Check connection state and get session directly from state
-            if (!self.state.isConnected || self.state.isSpeaking) return;
-
-            const session = self.state.session;
-            if (!session) {
-                // Session not yet assigned, skip this chunk
-                return;
-            }
-
-            const inputData = event.inputBuffer.getChannelData(0);
-            const pcmData = self.floatTo16BitPCM(inputData);
-            const base64Data = self.arrayBufferToBase64(pcmData.buffer);
-
-            try {
-                // Use sendRealtimeInput with media object (correct API format)
-                if (typeof session.sendRealtimeInput === 'function') {
-                    session.sendRealtimeInput({
-                        media: {
-                            mimeType: `audio/pcm;rate=${actualSampleRate}`,
-                            data: base64Data
-                        }
-                    });
-                } else if (typeof session.send === 'function') {
-                    // Fallback for older SDK versions
-                    session.send({
-                        realtimeInput: {
-                            mediaChunks: [{
-                                mimeType: `audio/pcm;rate=${actualSampleRate}`,
-                                data: base64Data
-                            }]
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error('Error sending audio:', error);
-            }
-        };
-
-        source.connect(this.state.processorNode);
-        this.state.processorNode.connect(this.state.inputAudioContext.destination);
-    },
-
-    // ========================================
-    // AUDIO MESSAGE HANDLING
-    // ========================================
-    async handleAudioMessage(message) {
-        const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-
-        if (base64Audio) {
-            this.state.isSpeaking = true;
-            this.updateStatus('speaking', 'AI is speaking...');
-
-            try {
-                const audioBuffer = await this.decodeAudioData(
-                    this.base64ToBytes(base64Audio),
-                    this.state.audioContext,
-                    24000,
-                    1
-                );
-
-                // Schedule playback
-                this.state.nextStartTime = Math.max(this.state.nextStartTime, this.state.audioContext.currentTime);
-
-                const source = this.state.audioContext.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(this.state.outputNode);
-
-                source.onended = () => {
-                    this.state.sourceNodes.delete(source);
-                    if (this.state.sourceNodes.size === 0) {
-                        this.state.isSpeaking = false;
-                        this.updateStatus('connected', 'Listening...');
-                    }
-                };
-
-                source.start(this.state.nextStartTime);
-                this.state.nextStartTime += audioBuffer.duration;
-                this.state.sourceNodes.add(source);
-
-            } catch (e) {
-                console.error('Audio decode error:', e);
-            }
-        }
-
-        // Handle interruption
-        if (message.serverContent?.interrupted) {
-            this.state.sourceNodes.forEach(node => {
-                try { node.stop(); } catch (e) { }
-            });
-            this.state.sourceNodes.clear();
-            this.state.nextStartTime = 0;
-            this.state.isSpeaking = false;
-            this.updateStatus('connected', 'Listening...');
+            console.error('Failed to start session:', error);
+            this.updateStatus('error', error.message || 'Connection failed');
+            this.elements.retryBtn?.classList.add('visible');
         }
     },
 
     // ========================================
     // AUDIO UTILITIES
     // ========================================
-    floatTo16BitPCM(float32Array) {
-        const int16Array = new Int16Array(float32Array.length);
-        for (let i = 0; i < float32Array.length; i++) {
-            const s = Math.max(-1, Math.min(1, float32Array[i]));
-            int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    createAudioBlob(data, sampleRate) {
+        const length = data.length;
+        const int16 = new Int16Array(length);
+        for (let i = 0; i < length; i++) {
+            int16[i] = Math.max(-32768, Math.min(32767, data[i] * 32768));
         }
-        return int16Array;
+        return {
+            data: this.bytesToBase64(new Uint8Array(int16.buffer)),
+            mimeType: `audio/pcm;rate=${sampleRate}`
+        };
     },
 
-    arrayBufferToBase64(buffer) {
+    bytesToBase64(bytes) {
         let binary = '';
-        const bytes = new Uint8Array(buffer);
-        for (let i = 0; i < bytes.byteLength; i++) {
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
             binary += String.fromCharCode(bytes[i]);
         }
         return btoa(binary);
     },
 
     base64ToBytes(base64) {
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
+        const binaryString = atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
         }
         return bytes;
     },
 
-    async decodeAudioData(audioBytes, audioContext, sampleRate, channels) {
-        const numSamples = audioBytes.length / 2;
-        const audioBuffer = audioContext.createBuffer(channels, numSamples, sampleRate);
-        const channelData = audioBuffer.getChannelData(0);
+    async decodeAudioData(data, ctx, sampleRate, numChannels) {
+        const dataInt16 = new Int16Array(data.buffer);
+        const frameCount = dataInt16.length / numChannels;
+        const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
 
-        const dataView = new DataView(audioBytes.buffer);
-        for (let i = 0; i < numSamples; i++) {
-            const sample = dataView.getInt16(i * 2, true);
-            channelData[i] = sample / 32768.0;
+        for (let channel = 0; channel < numChannels; channel++) {
+            const channelData = buffer.getChannelData(channel);
+            for (let i = 0; i < frameCount; i++) {
+                channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+            }
         }
-
-        return audioBuffer;
+        return buffer;
     },
 
     // ========================================
     // VISUALIZER
     // ========================================
-    setupVisualizer() {
-        if (!this.elements.canvas || !this.state.audioContext) return;
-
-        const analyser = this.state.audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        this.state.analyser = analyser;
-
-        this.state.outputNode = this.state.audioContext.createGain();
-        this.state.outputNode.connect(analyser);
-        analyser.connect(this.state.audioContext.destination);
+    initVisualizer() {
+        const canvas = this.elements.visualizer;
+        if (!canvas) return;
+        canvas.width = canvas.offsetWidth * 2;
+        canvas.height = canvas.offsetHeight * 2;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     },
 
     drawVisualizer() {
-        if (!this.elements.canvas || !this.state.analyser) return;
+        const self = this;
+        const canvas = this.elements.visualizer;
+        if (!canvas || !this.analyser) return;
 
-        const canvas = this.elements.canvas;
         const ctx = canvas.getContext('2d');
-        const analyser = this.state.analyser;
+        const analyser = this.analyser;
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
-        const draw = () => {
-            if (!this.state.isConnected) return;
-
-            requestAnimationFrame(draw);
+        function draw() {
+            if (!self.isConnected) return;
+            self.animationFrame = requestAnimationFrame(draw);
             analyser.getByteFrequencyData(dataArray);
 
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            const barColor = self.isSpeaking ? '#8b5cf6' : '#475569';
             const barWidth = (canvas.width / bufferLength) * 2.5;
             let x = 0;
 
             for (let i = 0; i < bufferLength; i++) {
-                const barHeight = (dataArray[i] / 255) * canvas.height;
+                const barHeight = dataArray[i] / 2;
+                ctx.fillStyle = barColor;
+                const y = (canvas.height - barHeight) / 2;
 
-                const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
-                gradient.addColorStop(0, '#f7931e');
-                gradient.addColorStop(1, '#e08100');
-
-                ctx.fillStyle = gradient;
-                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                    ctx.roundRect(x, y, barWidth, barHeight, 4);
+                } else {
+                    ctx.rect(x, y, barWidth, barHeight);
+                }
+                ctx.fill();
 
                 x += barWidth + 1;
             }
-        };
-
+        }
         draw();
     },
 
     // ========================================
     // STATUS UPDATES
     // ========================================
-    updateStatus(type, message) {
-        if (!this.elements.status) return;
+    updateStatus(state, text) {
+        if (this.elements.statusText) {
+            this.elements.statusText.textContent = text;
+        }
+        if (this.elements.statusContainer) {
+            this.elements.statusContainer.className = 'ai-status ' + state;
+        }
+    },
 
-        this.elements.status.textContent = message;
-        this.elements.status.className = 'ai-voice-status ' + type;
+    // ========================================
+    // RETRY
+    // ========================================
+    async retry() {
+        this.elements.retryBtn?.classList.remove('visible');
+        this.stopSession();
+        this.updateStatus('connecting', 'Reconnecting...');
 
-        // Show/hide retry button
-        if (this.elements.retryBtn) {
-            this.elements.retryBtn.style.display = type === 'error' ? 'block' : 'none';
+        const configLoaded = await this.loadConfig();
+        if (configLoaded) {
+            await this.startSession();
         }
     }
 };
 
 // ========================================
-// GLOBAL FUNCTION
+// GLOBAL FUNCTIONS
 // ========================================
 function openAIVoiceSupport() {
     AIVoiceSupport.openModal();
 }
 
+function closeAIVoiceSupport() {
+    AIVoiceSupport.closeModal();
+}
+
+function retryAIVoiceSupport() {
+    AIVoiceSupport.retry();
+}
+
 // ========================================
 // AUTO-INITIALIZE
 // ========================================
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => AIVoiceSupport.init());
-} else {
+document.addEventListener('DOMContentLoaded', () => {
     AIVoiceSupport.init();
-}
+});
 
-// Export for module environments
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { AIVoiceSupport, openAIVoiceSupport };
+    module.exports = AIVoiceSupport;
 }

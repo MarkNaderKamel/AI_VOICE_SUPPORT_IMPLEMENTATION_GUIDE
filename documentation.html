@@ -1105,8 +1105,8 @@
                     <a href="#custom-avatar" class="nav-link">
                         <i class="fas fa-user-circle"></i> Custom Avatar
                     </a>
-                    <a href="#troubleshooting" class="nav-link">
-                        <i class="fas fa-tools"></i> Troubleshooting
+                    <a href="view-troubleshooting.html" class="nav-link">
+                        <i class="fas fa-bug"></i> Troubleshooting Guide
                     </a>
                 </div>
 
@@ -2600,6 +2600,91 @@ public/assets/img/your-avatar.png   # Or static image</code></pre>
                     </table>
                 </section>
 
+                <!-- Troubleshooting Section -->
+                <section id="troubleshooting" class="docs-section">
+                    <h2>
+                        <span class="section-icon"><i class="fas fa-bug"></i></span>
+                        Troubleshooting
+                    </h2>
+                    <p>Encountering issues? Here's a quick reference of common errors and their solutions. For detailed
+                        step-by-step fixes with complete code examples, visit the full troubleshooting guide.</p>
+
+                    <!-- Quick Link to Full Guide -->
+                    <div
+                        style="background: linear-gradient(135deg, rgba(248, 81, 73, 0.1), rgba(247, 147, 30, 0.1)); border: 1px solid rgba(248, 81, 73, 0.3); border-radius: 16px; padding: 32px; margin: 24px 0; text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🔧</div>
+                        <h3 style="margin-bottom: 12px; color: var(--text-primary);">Need Detailed Help?</h3>
+                        <p
+                            style="color: var(--text-secondary); margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                            Our comprehensive troubleshooting guide includes 10+ common errors with complete code
+                            examples, step-by-step solutions, and a verified working implementation.
+                        </p>
+                        <a href="view-troubleshooting.html"
+                            style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #f85149, #e08100); color: #fff; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 8px 24px rgba(248, 81, 73, 0.3);">
+                            <i class="fas fa-external-link-alt"></i> View Full Troubleshooting Guide
+                        </a>
+                    </div>
+
+                    <!-- Quick Reference Table -->
+                    <h3>Quick Reference: Common Errors</h3>
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">Error</th>
+                                <th style="width: 30%;">Cause</th>
+                                <th style="width: 30%;">Quick Fix</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>client.liveConnect is not a function</code></td>
+                                <td>Wrong API method name</td>
+                                <td>Use <code>ai.live.connect()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>session.on is not a function</code></td>
+                                <td>EventEmitter pattern doesn't exist</td>
+                                <td>Use <code>callbacks</code> object in connect()</td>
+                            </tr>
+                            <tr>
+                                <td><code>Cannot read 'onmessage'</code></td>
+                                <td>Async iteration not supported</td>
+                                <td>Remove <code>for await...of</code>, use callbacks</td>
+                            </tr>
+                            <tr>
+                                <td><code>API key not configured</code></td>
+                                <td>.env file path issue</td>
+                                <td>Check path in ai-config.php</td>
+                            </tr>
+                            <tr>
+                                <td><code>CORS / Fetch failed</code></td>
+                                <td>Missing headers or wrong path</td>
+                                <td>Add CORS headers, check endpoint URL</td>
+                            </tr>
+                            <tr>
+                                <td><code>Microphone access denied</code></td>
+                                <td>No HTTPS or permission blocked</td>
+                                <td>Use HTTPS, check browser permissions</td>
+                            </tr>
+                            <tr>
+                                <td><code>ScriptProcessorNode deprecated</code></td>
+                                <td>Browser warning (non-blocking)</td>
+                                <td>Feature still works, can migrate to AudioWorklet later</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="alert alert-info" style="margin-top: 20px;">
+                        <i class="fas fa-info-circle alert-icon"></i>
+                        <div class="alert-content">
+                            <h4>Need More Help?</h4>
+                            <p>The <a href="view-troubleshooting.html" style="color: var(--info-color);">full
+                                    troubleshooting guide</a> includes detailed explanations, wrong vs. correct code
+                                comparisons, and a complete working implementation you can copy.</p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Arabic Guide Section -->
                 <section id="arabic-guide" class="docs-section" dir="rtl" style="text-align: right;">
                     <h2 style="flex-direction: row-reverse;">
@@ -2868,14 +2953,14 @@ GEMINI_VOICE=Puck</code></pre>
             const arBtn = document.getElementById('lang-ar');
             const arabicSection = document.getElementById('arabic-guide');
             const overviewSection = document.getElementById('overview');
-            
+
             if (lang === 'ar') {
                 // Switch to Arabic
                 enBtn.style.background = 'transparent';
                 enBtn.style.color = 'var(--primary-color)';
                 arBtn.style.background = 'var(--primary-color)';
                 arBtn.style.color = '#000';
-                
+
                 // Scroll to Arabic section
                 if (arabicSection) {
                     arabicSection.scrollIntoView({ behavior: 'smooth' });
@@ -2886,7 +2971,7 @@ GEMINI_VOICE=Puck</code></pre>
                 arBtn.style.color = 'var(--primary-color)';
                 enBtn.style.background = 'var(--primary-color)';
                 enBtn.style.color = '#000';
-                
+
                 // Scroll to overview section
                 if (overviewSection) {
                     overviewSection.scrollIntoView({ behavior: 'smooth' });

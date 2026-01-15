@@ -1,40 +1,55 @@
 # AI Voice Support - Documentation Files
 
-This folder contains all the demo code files needed to implement AI Voice Support in any Laravel/PHP website. Now featuring **bilingual support (English/Arabic)** and **custom avatar customization**.
+This folder contains all the demo code files needed to implement AI Voice Support in any Laravel/PHP website. Now featuring **bilingual support (English/Arabic)**, **custom avatar customization**, and **Gemini Live API integration**.
 
 ## 📁 File Contents
 
 | File | Description |
 |------|-------------|
 | `AI_VOICE_SUPPORT_IMPLEMENTATION_GUIDE.md` | Complete step-by-step implementation guide (Markdown) with Arabic version |
+| `AI_VOICE_SUPPORT_IMPLEMENTATION_PROMPT.md` | AI agent prompt for automated implementation |
+| `TROUBLESHOOTING.md` | **NEW** - Common errors and solutions guide |
 | `ai-implementation-prompt.md` | AI agent prompt for automated implementation |
-| `documentation.html` | **Professional styled documentation page** with language switcher |
+| `documentation.html` | Professional styled documentation page with language switcher |
 | `index.html` | Demo HTML page to test the feature |
 | `demo-ai-knowledge-base.js` | Sample knowledge base with company data |
-| `demo-ai-voice-support.js` | Main JavaScript module for voice interaction |
+| `demo-ai-voice-support.js` | **UPDATED v3.0** - Main JavaScript with correct API pattern |
 | `demo-ai-voice-support.css` | Glassmorphism styles for the modal + custom avatar styles |
 | `demo-ai-voice-support.blade.php` | Laravel Blade component template |
 | `demo-AiVoiceSupportController.php` | Backend PHP controller for secure API calls |
 | `demo-routes-example.php` | Route configuration examples |
 | `favicon.png` | Documentation favicon |
 
-## ✨ What's New
+## 🆕 Version 3.0 Changes
 
-### Custom Avatar / Character Support
-Replace the default microphone icon with a custom animated GIF or character:
-- Floating wrapper with speech bubble label
-- Smooth floating animations
-- Circular avatar frame with glow effects
-- Fully customizable colors and sizing
+### Critical Bug Fixes
+- **Fixed WebSocket Error**: Resolved `Cannot read properties of undefined (reading 'onmessage')` by using the correct callbacks-based pattern
+- **Fixed API Method**: Changed from `client.liveConnect()` to `client.live.connect()`
+- **Removed Async Iteration**: Replaced `for await...of session.receive()` with callbacks
 
-### Bilingual Support (English/Arabic)
-- Language switcher buttons in documentation header
-- Complete Arabic guide section (الدليل العربي)
-- RTL layout support for Arabic content
+### Correct Implementation Pattern
+```javascript
+// ✅ CORRECT - Use callbacks object in connect()
+const session = await ai.live.connect({
+    model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+    config: { ... },
+    callbacks: {
+        onopen: () => { /* Connected */ },
+        onmessage: async (message) => { /* Handle audio */ },
+        onclose: () => { /* Disconnected */ },
+        onerror: (error) => { /* Handle error */ }
+    }
+});
+```
 
-### Dynamic Path Detection
-- Automatic base path detection for localhost vs production deployment
-- No more hardcoded `/aseu/` paths - works everywhere!
+### Troubleshooting Guide
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for solutions to common issues:
+- `client.liveConnect is not a function`
+- `session.on is not a function`
+- `Cannot read properties of undefined (reading 'onmessage')`
+- `ScriptProcessorNode` deprecation warning
+- API key configuration issues
+- CORS errors
 
 ## 🚀 Quick Start
 
@@ -95,8 +110,6 @@ Replace the microphone icon with a custom character:
 </div>
 ```
 
-See the **Custom Avatar** section in `documentation.html` for full CSS styling.
-
 ## 📋 Requirements
 
 - PHP 7.4+ with cURL extension
@@ -124,26 +137,21 @@ Edit CSS variables in `demo-ai-voice-support.css`:
 | Kore | Female |
 | Zephyr | Female |
 
-### Update Knowledge Base
-Edit `demo-ai-knowledge-base.js` with your company information:
-- Company details
-- Services offered
-- FAQ content
-- Greetings in different languages
-
 ## 🌐 Supported Languages
 
 English, Arabic, French, Spanish, German, Italian, Portuguese, Russian, Chinese, Japanese, Korean, Turkish, Hindi, Urdu
 
-## �‍💻 Developer
+## 👨‍💻 Developer
 
 **Developed by [Mark Nader](https://www.linkedin.com/in/mark-nader-kamel)**
 
-## �📞 Support
+## 📞 Support
 
-For implementation assistance, refer to the full documentation or contact the development team.
+For implementation assistance:
+1. Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues
+2. Review the full documentation
+3. Contact: [Mark Nader](https://www.linkedin.com/in/mark-nader-kamel)
 
-**Contact Me [Mark Nader](https://www.linkedin.com/in/mark-nader-kamel)**
 ---
-*Version 2.0 - Gemini Live API*  
+*Version 3.0 - Gemini Live API with Fixed WebSocket Implementation*  
 *Last updated: January 2026*

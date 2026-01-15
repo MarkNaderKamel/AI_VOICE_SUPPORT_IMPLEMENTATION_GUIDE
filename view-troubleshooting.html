@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troubleshooting Guide - AI Voice Support</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f7931e;
+            --primary-dark: #e08100;
+            --bg: #0d1117;
+            --bg-card: #161b22;
+            --bg-code: #1e2633;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --border: #30363d;
+            --success: #3fb950;
+            --warning: #d29922;
+            --danger: #f85149;
+            --info: #58a6ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--text);
+            border-color: var(--primary);
+            background: rgba(247, 147, 30, 0.1);
+        }
+
+        .page-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--danger), #dc3545);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .page-info h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .page-info .meta {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(247, 147, 30, 0.3);
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+
+        .toc h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toc h3 i {
+            color: var(--primary);
+        }
+
+        .toc-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 8px;
+        }
+
+        .toc-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .toc-item:hover {
+            background: rgba(247, 147, 30, 0.1);
+            color: var(--primary);
+        }
+
+        .toc-item .error-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .error-badge.critical {
+            background: rgba(248, 81, 73, 0.2);
+            color: var(--danger);
+        }
+
+        .error-badge.warning {
+            background: rgba(210, 153, 34, 0.2);
+            color: var(--warning);
+        }
+
+        /* Error Cards */
+        .error-section {
+            margin-bottom: 48px;
+            scroll-margin-top: 24px;
+        }
+
+        .error-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .error-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(248, 81, 73, 0.1), transparent);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .error-header.warning-bg {
+            background: linear-gradient(135deg, rgba(210, 153, 34, 0.1), transparent);
+        }
+
+        .error-number {
+            width: 44px;
+            height: 44px;
+            background: var(--danger);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .error-number.warning {
+            background: var(--warning);
+        }
+
+        .error-title h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .error-code {
+            display: inline-block;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            background: rgba(248, 81, 73, 0.2);
+            color: var(--danger);
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        .error-body {
+            padding: 24px;
+        }
+
+        .error-subsection {
+            margin-bottom: 24px;
+        }
+
+        .error-subsection:last-child {
+            margin-bottom: 0;
+        }
+
+        .error-subsection h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-subsection h4 i {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .error-subsection p {
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .error-subsection ul {
+            padding-left: 20px;
+            color: var(--text-muted);
+        }
+
+        .error-subsection li {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: var(--bg-code);
+            border-radius: 10px;
+            margin: 16px 0;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .code-label.wrong {
+            color: var(--danger);
+        }
+
+        .code-label.correct {
+            color: var(--success);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 16px;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+        }
+
+        .info-box.success {
+            background: rgba(63, 185, 80, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        .info-box.warning {
+            background: rgba(210, 153, 34, 0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .info-box.info {
+            background: rgba(88, 166, 255, 0.1);
+            border-left: 4px solid var(--info);
+        }
+
+        .info-box i {
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .info-box.success i {
+            color: var(--success);
+        }
+
+        .info-box.warning i {
+            color: var(--warning);
+        }
+
+        .info-box.info i {
+            color: var(--info);
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Working Example Section */
+        .working-example {
+            background: linear-gradient(135deg, var(--bg-card), rgba(63, 185, 80, 0.05));
+            border: 1px solid var(--success);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 48px 0;
+        }
+
+        .working-example h2 {
+            font-size: 22px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--success);
+        }
+
+        .working-example>p {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            padding: 24px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <a href="documentation.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Docs</a>
+                <div class="page-badge">
+                    <div class="page-icon"><i class="fas fa-bug"></i></div>
+                    <div class="page-info">
+                        <h1>Troubleshooting Guide</h1>
+                        <span class="meta">Complete Error Solutions • v3.0</span>
+                    </div>
+                </div>
+            </div>
+            <a href="TROUBLESHOOTING.md" download class="btn btn-primary">
+                <i class="fas fa-download"></i> Download MD
+            </a>
+        </header>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h3><i class="fas fa-list"></i> Quick Navigation</h3>
+            <div class="toc-list">
+                <a href="#error-1" class="toc-item">
+                    <span class="error-badge critical">CRITICAL</span>
+                    <span>client.liveConnect is not a function</span>
+                </a>
+                <a href="#error-2" class="toc-item">
+                    <span class="error-badge critical">CRITICAL</span>
+                    <span>session.on is not a function</span>
+                </a>
+                <a href="#error-3" class="toc-item">
+                    <span class="error-badge critical">CRITICAL</span>
+                    <span>Cannot read 'onmessage'</span>
+                </a>
+                <a href="#error-4" class="toc-item">
+                    <span class="error-badge critical">CRITICAL</span>
+                    <span>Session receive() not found</span>
+                </a>
+                <a href="#error-5" class="toc-item">
+                    <span class="error-badge warning">WARNING</span>
+                    <span>ScriptProcessorNode deprecated</span>
+                </a>
+                <a href="#error-6" class="toc-item">
+                    <span class="error-badge critical">CRITICAL</span>
+                    <span>API Key not configured</span>
+                </a>
+                <a href="#error-7" class="toc-item">
+                    <span class="error-badge critical">CRITICAL</span>
+                    <span>CORS / Config loading failed</span>
+                </a>
+                <a href="#error-8" class="toc-item">
+                    <span class="error-badge critical">CRITICAL</span>
+                    <span>Microphone access denied</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Error 1 -->
+        <section id="error-1" class="error-section">
+            <div class="error-card">
+                <div class="error-header">
+                    <div class="error-number">1</div>
+                    <div class="error-title">
+                        <h2>client.liveConnect is not a function</h2>
+                        <code class="error-code">TypeError: client.liveConnect is not a function</code>
+                    </div>
+                </div>
+                <div class="error-body">
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-exclamation-circle"></i> Symptom</h4>
+                        <p>JavaScript throws a TypeError when trying to establish a connection with the Gemini API. The
+                            connection fails immediately.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-search"></i> Root Cause</h4>
+                        <p>Incorrect API method name used. The Gemini SDK uses <code>client.live.connect()</code> with a
+                            nested <code>live</code> property, not a direct <code>liveConnect()</code> method on the
+                            client object.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-code"></i> Wrong Code</h4>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label wrong"><i class="fas fa-times-circle"></i> INCORRECT</span>
+                            </div>
+                            <pre><code class="language-javascript">// ❌ This method doesn't exist
+const session = await client.liveConnect({
+    model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+    config: { ... }
+});</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-check-circle"></i> Correct Solution</h4>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label correct"><i class="fas fa-check-circle"></i> CORRECT</span>
+                            </div>
+                            <pre><code class="language-javascript">// ✅ Use client.live.connect() - note the nested 'live' property
+const ai = new GoogleGenAI({ apiKey: apiKey });
+
+const session = await ai.live.connect({
+    model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+    config: {
+        responseModalities: ['AUDIO'],
+        // ... other config
+    },
+    callbacks: {
+        onopen: () => { },
+        onmessage: async (msg) => { },
+        onclose: () => { },
+        onerror: (err) => { }
+    }
+});</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box success">
+                        <i class="fas fa-lightbulb"></i>
+                        <p><strong>Key Point:</strong> The GoogleGenAI client has a <code>live</code> property that
+                            contains the <code>connect()</code> method for real-time streaming.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error 2 -->
+        <section id="error-2" class="error-section">
+            <div class="error-card">
+                <div class="error-header">
+                    <div class="error-number">2</div>
+                    <div class="error-title">
+                        <h2>session.on is not a function</h2>
+                        <code class="error-code">TypeError: this.session.on is not a function</code>
+                    </div>
+                </div>
+                <div class="error-body">
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-exclamation-circle"></i> Symptom</h4>
+                        <p>After successfully connecting, trying to set up event handlers using <code>.on()</code>
+                            method throws a TypeError.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-search"></i> Root Cause</h4>
+                        <p>The Gemini Live API session object does NOT use the EventEmitter pattern (like Node.js
+                            streams or Socket.IO). The <code>.on()</code> method does not exist. Events must be handled
+                            via callbacks passed to <code>connect()</code>.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-code"></i> Wrong Code</h4>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label wrong"><i class="fas fa-times-circle"></i> INCORRECT</span>
+                            </div>
+                            <pre><code class="language-javascript">// ❌ These event handlers don't exist on the session object
+const session = await ai.live.connect(config);
+
+session.on('message', (msg) => {
+    console.log('Received:', msg);
+});
+
+session.on('error', (err) => {
+    console.error('Error:', err);
+});
+
+session.on('close', () => {
+    console.log('Closed');
+});</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-check-circle"></i> Correct Solution</h4>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label correct"><i class="fas fa-check-circle"></i> CORRECT</span>
+                            </div>
+                            <pre><code class="language-javascript">// ✅ Pass callbacks directly in the connect() configuration
+const session = await ai.live.connect({
+    model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+    config: { responseModalities: ['AUDIO'] },
+    
+    // ✅ Callbacks object - THIS is how you handle events
+    callbacks: {
+        onopen: function() {
+            console.log('Connected!');
+            // Start audio capture here
+        },
+        
+        onmessage: async function(message) {
+            // Handle incoming audio/text responses
+            const audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+            if (audio) {
+                // Play audio...
+            }
+        },
+        
+        onclose: function() {
+            console.log('Disconnected');
+        },
+        
+        onerror: function(error) {
+            console.error('Error:', error);
+        }
+    }
+});</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box info">
+                        <i class="fas fa-info-circle"></i>
+                        <p><strong>Note:</strong> All four callbacks (<code>onopen</code>, <code>onmessage</code>,
+                            <code>onclose</code>, <code>onerror</code>) should be provided for robust error handling.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error 3 -->
+        <section id="error-3" class="error-section">
+            <div class="error-card">
+                <div class="error-header">
+                    <div class="error-number">3</div>
+                    <div class="error-title">
+                        <h2>Cannot read properties of undefined (reading 'onmessage')</h2>
+                        <code
+                            class="error-code">Uncaught TypeError: Cannot read properties of undefined (reading 'onmessage')</code>
+                    </div>
+                </div>
+                <div class="error-body">
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-exclamation-circle"></i> Symptom</h4>
+                        <p>The error appears in the browser console with a stack trace pointing to WebSocket internals.
+                            The voice modal shows "Connecting..." but never reaches "Listening...".</p>
+                        <div class="code-block">
+                            <pre><code>Uncaught TypeError: Cannot read properties of undefined (reading 'onmessage')
+    at WebSocket.onmessage (live.ts:196:58)</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-search"></i> Root Cause</h4>
+                        <p>Using async iteration pattern (<code>for await...of session.receive()</code>) which is NOT
+                            supported in browser environments for the Gemini Live API. The <code>receive()</code> method
+                            either doesn't exist or returns undefined.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-code"></i> Wrong Code</h4>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label wrong"><i class="fas fa-times-circle"></i> INCORRECT</span>
+                            </div>
+                            <pre><code class="language-javascript">// ❌ Async iteration pattern - causes WebSocket internal error
+async startReceivingMessages() {
+    try {
+        const receiver = this.session.receive();  // May not exist or return undefined!
+        
+        for await (const message of receiver) {
+            // This loop never executes properly
+            this.handleMessage(message);
+        }
+    } catch (error) {
+        console.error('Error receiving:', error);
+    }
+}
+
+// Called after connect:
+this.startReceivingMessages();  // ❌ This causes the error</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-check-circle"></i> Correct Solution</h4>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label correct"><i class="fas fa-check-circle"></i> CORRECT</span>
+                            </div>
+                            <pre><code class="language-javascript">// ✅ Do NOT use async iteration
+// ✅ Use callbacks - messages arrive automatically via onmessage
+
+const session = await ai.live.connect({
+    model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+    config: { ... },
+    callbacks: {
+        // ✅ Messages are handled here - no need for receive()
+        onmessage: async function(message) {
+            // Extract audio data from server response
+            const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+            
+            if (base64Audio) {
+                // Decode and play the audio
+                const audioBuffer = await decodeAudioData(base64ToBytes(base64Audio));
+                playAudio(audioBuffer);
+            }
+            
+            // Handle interruption when user speaks while AI is talking
+            if (message.serverContent?.interrupted) {
+                stopAllPlayback();
+            }
+            
+            // Handle turn completion
+            if (message.serverContent?.turnComplete) {
+                updateStatus('listening');
+            }
+        }
+    }
+});</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p><strong>Important:</strong> The async iteration pattern may work in Node.js environments but
+                            NOT in browsers. Always use the callbacks pattern for web applications.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error 4 -->
+        <section id="error-4" class="error-section">
+            <div class="error-card">
+                <div class="error-header">
+                    <div class="error-number">4</div>
+                    <div class="error-title">
+                        <h2>Session does not have receive() method</h2>
+                        <code class="error-code">Console Warning: Session does not have receive method</code>
+                    </div>
+                </div>
+                <div class="error-body">
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-exclamation-circle"></i> Symptom</h4>
+                        <p>A warning appears in the console indicating the session object doesn't have a
+                            <code>receive()</code> method, followed by connection instability.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-search"></i> Root Cause</h4>
+                        <p>The browser version of the Gemini SDK returns a different session object than server-side
+                            implementations. The <code>receive()</code> async generator method is not available.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-check-circle"></i> Solution</h4>
+                        <p>Use the callbacks pattern exclusively. Remove all code that attempts to use
+                            <code>session.receive()</code>.</p>
+                        <ul>
+                            <li>Remove any <code>session.receive()</code> calls</li>
+                            <li>Remove <code>for await...of</code> loops for messages</li>
+                            <li>Handle all incoming data in the <code>onmessage</code> callback</li>
+                            <li>Ensure callbacks are defined in the <code>connect()</code> configuration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error 5 (Warning) -->
+        <section id="error-5" class="error-section">
+            <div class="error-card">
+                <div class="error-header warning-bg">
+                    <div class="error-number warning">5</div>
+                    <div class="error-title">
+                        <h2>ScriptProcessorNode is deprecated</h2>
+                        <code class="error-code"
+                            style="background: rgba(210, 153, 34, 0.2); color: var(--warning);">[Deprecation] The ScriptProcessorNode is deprecated</code>
+                    </div>
+                </div>
+                <div class="error-body">
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-exclamation-circle"></i> Impact Level</h4>
+                        <div class="info-box info">
+                            <i class="fas fa-info-circle"></i>
+                            <p><strong>Non-blocking warning</strong> - The feature still works correctly. This is a
+                                future compatibility warning only.</p>
+                        </div>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-search"></i> Cause</h4>
+                        <p>The audio processing uses <code>ScriptProcessorNode</code> which is deprecated in favor of
+                            <code>AudioWorkletNode</code>. However, ScriptProcessorNode still works in all major
+                            browsers as of 2026.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-code"></i> Current Implementation (Still Works)</h4>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label" style="color: var(--warning);"><i class="fas fa-clock"></i>
+                                    DEPRECATED BUT WORKING</span>
+                            </div>
+                            <pre><code class="language-javascript">// Current implementation - works but shows deprecation warning
+const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+processor.onaudioprocess = function(event) {
+    const inputData = event.inputBuffer.getChannelData(0);
+    // Process and send audio...
+};
+
+source.connect(processor);
+processor.connect(audioContext.destination);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-rocket"></i> Future-Proof Solution (Optional)</h4>
+                        <p>For future-proofing, migrate to AudioWorkletNode. This requires creating a separate worker
+                            file:</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label correct"><i class="fas fa-check-circle"></i> MODERN
+                                    APPROACH</span>
+                            </div>
+                            <pre><code class="language-javascript">// audio-processor.js (separate file)
+class AudioProcessor extends AudioWorkletProcessor {
+    process(inputs, outputs, parameters) {
+        const input = inputs[0][0];
+        if (input) {
+            this.port.postMessage(input);
+        }
+        return true;
+    }
+}
+registerProcessor('audio-processor', AudioProcessor);
+
+// main.js
+await audioContext.audioWorklet.addModule('audio-processor.js');
+const workletNode = new AudioWorkletNode(audioContext, 'audio-processor');
+workletNode.port.onmessage = (event) => {
+    // Handle audio data
+};</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error 6 -->
+        <section id="error-6" class="error-section">
+            <div class="error-card">
+                <div class="error-header">
+                    <div class="error-number">6</div>
+                    <div class="error-title">
+                        <h2>API Key Not Configured</h2>
+                        <code class="error-code">Error: API key not configured</code>
+                    </div>
+                </div>
+                <div class="error-body">
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-exclamation-circle"></i> Symptom</h4>
+                        <p>The modal shows "Configuration error" or "API key not configured" message immediately when
+                            opened.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-search"></i> Root Cause</h4>
+                        <p>The <code>GEMINI_API_KEY</code> environment variable is not set in the <code>.env</code>
+                            file, or the backend endpoint is not reading it correctly.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-check-circle"></i> Solution</h4>
+                        <p><strong>Step 1:</strong> Add the API key to your <code>.env</code> file:</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-label correct"><i class="fas fa-file"></i> .env</span>
+                            </div>
+                            <pre><code class="language-bash"># Get your API key from https://aistudio.google.com/apikey
+GEMINI_API_KEY=your_actual_api_key_here
+GEMINI_MODEL=gemini-2.5-flash-native-audio-preview-12-2025
+GEMINI_VOICE=Puck</code></pre>
+                        </div>
+
+                        <p><strong>Step 2:</strong> Ensure <code>ai-config.php</code> reads from the correct path:</p>
+                        <div class="code-block">
+                            <pre><code class="language-php">// Check the path to your .env file
+$envFile = __DIR__ . '/core/.env';  // Adjust path as needed
+
+if (!file_exists($envFile)) {
+    // Try alternative paths
+    $envFile = __DIR__ . '/../.env';
+}
+
+// Read and parse .env
+$lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+foreach ($lines as $line) {
+    if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
+        list($key, $value) = explode('=', $line, 2);
+        putenv(trim($key) . '=' . trim($value));
+    }
+}
+
+$apiKey = getenv('GEMINI_API_KEY');</code></pre>
+                        </div>
+
+                        <p><strong>Step 3:</strong> Clear any caches (Laravel):</p>
+                        <div class="code-block">
+                            <pre><code class="language-bash">php artisan config:clear
+php artisan cache:clear</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error 7 -->
+        <section id="error-7" class="error-section">
+            <div class="error-card">
+                <div class="error-header">
+                    <div class="error-number">7</div>
+                    <div class="error-title">
+                        <h2>CORS / Configuration Loading Failed</h2>
+                        <code class="error-code">Failed to fetch / Access-Control-Allow-Origin error</code>
+                    </div>
+                </div>
+                <div class="error-body">
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-exclamation-circle"></i> Symptom</h4>
+                        <p>Browser console shows CORS errors or "Failed to fetch" when the JavaScript tries to load
+                            configuration from the backend.</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-check-circle"></i> Solution</h4>
+                        <p><strong>1. Add proper CORS headers to ai-config.php:</strong></p>
+                        <div class="code-block">
+                            <pre><code class="language-php">&lt;?php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-CSRF-TOKEN');
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+// ... rest of your config code</code></pre>
+                        </div>
+
+                        <p><strong>2. Check the endpoint path in JavaScript:</strong></p>
+                        <div class="code-block">
+                            <pre><code class="language-javascript">getConfigEndpoint() {
+    // Handle subfolder installations (e.g., localhost/project-name/)
+    const path = window.location.pathname;
+    const subfolderMatch = path.match(/^\/([^\/]+)\//);
+    const basePath = subfolderMatch ? '/' + subfolderMatch[1] : '';
+    
+    return window.location.origin + basePath + '/api/ai-config.php';
+}</code></pre>
+                        </div>
+
+                        <p><strong>3. Test the endpoint directly:</strong></p>
+                        <ul>
+                            <li>Open <code>http://localhost/your-project/api/ai-config.php</code> in browser</li>
+                            <li>Should return JSON with <code>{"success": true, ...}</code></li>
+                            <li>If you see raw PHP code, your server isn't processing PHP files</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error 8 -->
+        <section id="error-8" class="error-section">
+            <div class="error-card">
+                <div class="error-header">
+                    <div class="error-number">8</div>
+                    <div class="error-title">
+                        <h2>Microphone Access Denied</h2>
+                        <code class="error-code">NotAllowedError: Permission denied</code>
+                    </div>
+                </div>
+                <div class="error-body">
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-exclamation-circle"></i> Symptom</h4>
+                        <p>Browser shows permission denied error, or microphone prompt never appears. Modal may show
+                            "Connection failed" or remain stuck on "Connecting...".</p>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-search"></i> Common Causes</h4>
+                        <ul>
+                            <li>User denied microphone permission</li>
+                            <li>Site not served over HTTPS (required in production)</li>
+                            <li>Browser privacy settings blocking microphone</li>
+                            <li>Another application using the microphone exclusively</li>
+                        </ul>
+                    </div>
+
+                    <div class="error-subsection">
+                        <h4><i class="fas fa-check-circle"></i> Solutions</h4>
+                        <p><strong>1. HTTPS Requirement:</strong></p>
+                        <div class="info-box warning">
+                            <i class="fas fa-lock"></i>
+                            <p><strong>Important:</strong> Microphone access requires HTTPS in production. For local
+                                development, <code>localhost</code> is exempt from this requirement.</p>
+                        </div>
+
+                        <p><strong>2. Check browser permissions:</strong></p>
+                        <ul>
+                            <li>Click the lock/info icon in the address bar</li>
+                            <li>Find "Microphone" in permissions</li>
+                            <li>Change to "Allow"</li>
+                        </ul>
+
+                        <p><strong>3. Handle permission gracefully in code:</strong></p>
+                        <div class="code-block">
+                            <pre><code class="language-javascript">try {
+    this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 16000
+        }
+    });
+} catch (error) {
+    if (error.name === 'NotAllowedError') {
+        this.updateStatus('error', 'Microphone access denied. Please allow microphone access.');
+    } else if (error.name === 'NotFoundError') {
+        this.updateStatus('error', 'No microphone found. Please connect a microphone.');
+    } else {
+        this.updateStatus('error', 'Microphone error: ' + error.message);
+    }
+    return;
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Working Example -->
+        <section class="working-example">
+            <h2><i class="fas fa-check-double"></i> Complete Working Implementation</h2>
+            <p>Here's a complete, tested implementation that avoids all the errors above:</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-label correct"><i class="fas fa-star"></i> VERIFIED WORKING CODE</span>
+                </div>
+                <pre><code class="language-javascript">async startSession() {
+    const ai = new GoogleGenAI({ apiKey: this.config.apiKey });
+
+    // Create separate audio contexts for input and output
+    this.inputAudioContext = new AudioContext({ sampleRate: 16000 });
+    this.outputAudioContext = new AudioContext({ sampleRate: 24000 });
+    
+    // Resume contexts (required after user interaction)
+    await this.inputAudioContext.resume();
+    await this.outputAudioContext.resume();
+
+    // Set up output audio chain
+    this.analyser = this.outputAudioContext.createAnalyser();
+    this.outputNode = this.outputAudioContext.createGain();
+    this.outputNode.connect(this.analyser);
+    this.analyser.connect(this.outputAudioContext.destination);
+
+    // Get microphone access
+    this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const self = this;
+    const inputAudioContext = this.inputAudioContext;
+    const stream = this.mediaStream;
+
+    // ✅ CORRECT: Use callbacks in connect()
+    const sessionPromise = ai.live.connect({
+        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+        config: {
+            responseModalities: ['AUDIO'],
+            systemInstruction: this.config.systemInstruction,
+            speechConfig: {
+                voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: 'Puck' }
+                }
+            }
+        },
+        callbacks: {
+            onopen: function() {
+                self.isConnected = true;
+                self.updateStatus('listening', 'Listening...');
+                
+                // Start capturing microphone audio
+                const source = inputAudioContext.createMediaStreamSource(stream);
+                const processor = inputAudioContext.createScriptProcessor(4096, 1, 1);
+                
+                processor.onaudioprocess = function(event) {
+                    const inputData = event.inputBuffer.getChannelData(0);
+                    const pcmBlob = self.createAudioBlob(inputData, inputAudioContext.sampleRate);
+                    
+                    // Send audio to Gemini
+                    sessionPromise.then(function(session) {
+                        session.sendRealtimeInput({ media: pcmBlob });
+                    });
+                };
+                
+                source.connect(processor);
+                processor.connect(inputAudioContext.destination);
+            },
+            
+            onmessage: async function(message) {
+                const audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+                if (audio) {
+                    self.isSpeaking = true;
+                    self.updateStatus('speaking', 'Speaking...');
+                    // Decode and play audio...
+                }
+                
+                if (message.serverContent?.interrupted) {
+                    self.stopAllPlayback();
+                    self.updateStatus('listening', 'Listening...');
+                }
+            },
+            
+            onclose: function() {
+                self.isConnected = false;
+            },
+            
+            onerror: function(error) {
+                console.error('Session error:', error);
+                self.updateStatus('error', 'Connection error');
+            }
+        }
+    });
+
+    this.session = await sessionPromise;
+}
+
+// Helper function to create audio blob for sending
+createAudioBlob(data, sampleRate) {
+    const int16 = new Int16Array(data.length);
+    for (let i = 0; i < data.length; i++) {
+        int16[i] = Math.max(-32768, Math.min(32767, data[i] * 32768));
+    }
+    return {
+        data: btoa(String.fromCharCode(...new Uint8Array(int16.buffer))),
+        mimeType: `audio/pcm;rate=${sampleRate}`
+    };
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>
+                <i class="fas fa-code" style="margin-right: 6px; color: var(--primary);"></i>
+                Developed by <a href="https://www.linkedin.com/in/mark-nader-kamel" target="_blank">Mark Nader</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 13px;">
+                AI Voice Support Documentation • Version 3.0
+            </p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+</body>
+
+</html>
